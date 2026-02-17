@@ -15,12 +15,14 @@ class MedicineRecord:
         self.expiry_date = expiry_date
         self.daily_sales = daily_sales
     
-    def days_until_expiry(self):
+    def days_until_expiry(self, current_time=None):
+        if current_time is None:
+            current_time = datetime.now()
         expiry = datetime.strptime(self.expiry_date, "%Y-%m-%d")
-        return (expiry - datetime.now()).days
+        return (expiry - current_time).days
     
-    def predicted_sales_before_expiry(self):
-        return self.daily_sales * max(0, self.days_until_expiry())
+    def predicted_sales_before_expiry(self, current_time=None):
+        return self.daily_sales * max(0, self.days_until_expiry(current_time))
 
 class StockSenseAgent:
     def __init__(self):
@@ -38,8 +40,9 @@ class StockSenseAgent:
             print(f"{self.logger_prefix} ERROR: Could not load inventory data from {inventory_file}")
             return None
         
+        now = datetime.now()
         recommendations = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": now.isoformat(),
             "expiry_alerts": [],
             "discount_recommendations": [],
             "restock_orders": []
@@ -54,7 +57,7 @@ class StockSenseAgent:
                 daily_sales=medicine['daily_sales']
             )
             
-            days_left = medicine_obj.days_until_expiry()
+            days_left = medicine_obj.days_until_expiry(now)
             
             # Alert: Expiring soon
             if days_left <= 30 and days_left > 0:
@@ -68,7 +71,7 @@ class StockSenseAgent:
             
             # Recommend discount for near-expiry
             if 7 <= days_left <= 14:
-                predicted_sales = medicine_obj.predicted_sales_before_expiry()
+                predicted_sales = medicine_obj.predicted_sales_before_expiry(now)
                 if predicted_sales < medicine_obj.stock * 0.5:
                     discount_pct = 15 if predicted_sales < medicine_obj.stock * 0.3 else 10
                     recommendations["discount_recommendations"].append({
