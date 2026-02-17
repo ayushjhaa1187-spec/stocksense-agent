@@ -1,0 +1,16 @@
+name,stock,expiry_date,daily_sales,batch_id
+Aspirin 500mg,150,2026-02-28,8,B001
+Paracetamol 650mg,200,2026-03-15,12,B002
+Amoxicillin 250mg,75,2026-02-20,5,B003
+Metformin 500mg,300,2026-04-10,20,B004
+Atorvastatin 10mg,180,2026-03-25,10,B005
+Ibuprofen 400mg,250,2026-02-25,15,B006
+Omeprazole 20mg,100,2026-03-20,7,B007
+Vitamin B12,120,2026-05-01,6,B008
+Cough Syrup,80,2026-02-15,3,B009
+Antihistamine,95,2026-03-10,4,B010
+Ciprofloxacin 500mg,65,2026-02-18,2,B011
+Meclizine 25mg,45,2026-04-05,1,B012
+Metoclopramide 10mg,110,2026-03-30,5,B013
+Ranitidine 150mg,90,2026-02-22,4,B014
+Loperamide 2mg,70,2026-03-28,3,B015
