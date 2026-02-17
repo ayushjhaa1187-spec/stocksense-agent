@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import json
 import pandas as pd
 import os
+from dotenv import load_dotenv
 
 class MedicineRecord:
     def __init__(self, name, stock, expiry_date, daily_sales):
@@ -24,11 +25,14 @@ class MedicineRecord:
 
 class StockSenseAgent:
     def __init__(self):
+        load_dotenv()
         self.name = "stocksense_agent"
         self.logger_prefix = "[StockSense Agent]"
     
-    def scan_inventory(self, inventory_file="data/sample_inventory.csv"):
+    def scan_inventory(self, inventory_file=None):
         """Main agent cycle: scan inventory and generate recommendations"""
+        if inventory_file is None:
+            inventory_file = os.getenv("INVENTORY_FILE", "data/sample_inventory.csv")
         
         print(f"{self.logger_prefix} Starting inventory scan...")
         
@@ -96,8 +100,10 @@ class StockSenseAgent:
         
         return recommendations
     
-    def save_recommendations(self, recommendations, output_file="output/recommendations.json"):
+    def save_recommendations(self, recommendations, output_file=None):
         """Save agent recommendations to file"""
+        if output_file is None:
+            output_file = os.getenv("OUTPUT_FILE", "output/recommendations.json")
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
         with open(output_file, "w") as f:
             json.dump(recommendations, f, indent=2)
