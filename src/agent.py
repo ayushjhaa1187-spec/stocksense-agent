@@ -19,8 +19,10 @@ class MedicineRecord:
         expiry = datetime.strptime(self.expiry_date, "%Y-%m-%d")
         return (expiry - datetime.now()).days
     
-    def predicted_sales_before_expiry(self):
-        return self.daily_sales * max(0, self.days_until_expiry())
+    def predicted_sales_before_expiry(self, days_left=None):
+        if days_left is None:
+            days_left = self.days_until_expiry()
+        return self.daily_sales * max(0, days_left)
 
 class StockSenseAgent:
     def __init__(self):
@@ -68,7 +70,7 @@ class StockSenseAgent:
             
             # Recommend discount for near-expiry
             if 7 <= days_left <= 14:
-                predicted_sales = medicine_obj.predicted_sales_before_expiry()
+                predicted_sales = medicine_obj.predicted_sales_before_expiry(days_left)
                 if predicted_sales < medicine_obj.stock * 0.5:
                     discount_pct = 15 if predicted_sales < medicine_obj.stock * 0.3 else 10
                     recommendations["discount_recommendations"].append({
