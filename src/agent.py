@@ -16,11 +16,17 @@ class MedicineRecord:
         self.daily_sales = daily_sales
     
     def days_until_expiry(self):
-        expiry = datetime.strptime(self.expiry_date, "%Y-%m-%d")
-        return (expiry - datetime.now()).days
+        try:
+            expiry = datetime.strptime(self.expiry_date, "%Y-%m-%d")
+            return (expiry - datetime.now()).days
+        except ValueError:
+            return None
     
     def predicted_sales_before_expiry(self):
-        return self.daily_sales * max(0, self.days_until_expiry())
+        days_left = self.days_until_expiry()
+        if days_left is None:
+            return 0
+        return self.daily_sales * max(0, days_left)
 
 class StockSenseAgent:
     def __init__(self):
@@ -55,6 +61,10 @@ class StockSenseAgent:
             )
             
             days_left = medicine_obj.days_until_expiry()
+
+            if days_left is None:
+                print(f"{self.logger_prefix} WARNING: Invalid expiry date for {medicine_obj.name}: {medicine_obj.expiry_date}")
+                continue
             
             # Alert: Expiring soon
             if days_left <= 30 and days_left > 0:
