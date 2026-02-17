@@ -32,6 +32,19 @@ class StockSenseAgent:
         
         print(f"{self.logger_prefix} Starting inventory scan...")
         
+        # Security check: Prevent path traversal
+        # Ensure the file is within the data directory
+        base_dir = os.path.realpath("data")
+        file_path = os.path.realpath(inventory_file)
+
+        # Ensure base_dir ends with separator to prevent partial matches
+        if not base_dir.endswith(os.path.sep):
+            base_dir += os.path.sep
+
+        if not file_path.startswith(base_dir):
+            print(f"{self.logger_prefix} SECURITY ERROR: Access denied to {inventory_file}. File must be in {base_dir}")
+            return None
+
         try:
             inventory = pd.read_csv(inventory_file)
         except FileNotFoundError:
