@@ -46,12 +46,12 @@ class StockSenseAgent:
         }
         
         # Analyze each medicine
-        for _, medicine in inventory.iterrows():
+        for medicine in inventory.itertuples():
             medicine_obj = MedicineRecord(
-                name=medicine['name'],
-                stock=medicine['stock'],
-                expiry_date=medicine['expiry_date'],
-                daily_sales=medicine['daily_sales']
+                name=medicine.name,
+                stock=medicine.stock,
+                expiry_date=medicine.expiry_date,
+                daily_sales=medicine.daily_sales
             )
             
             days_left = medicine_obj.days_until_expiry()
