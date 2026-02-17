@@ -34,3 +34,8 @@ pytest-cov==4.1.0
 # Utilities
 python-dotenv==1.0.0
 requests==2.31.0
+
+# Dev Tools
+black==23.1.0
+flake8==6.0.0
+isort==5.12.0

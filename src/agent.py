@@ -3,10 +3,16 @@ StockSense Agent - Autonomous pharmacy inventory manager
 Powered by Fetch.ai uAgents
 """
 
-from datetime import datetime, timedelta
-import json
-import pandas as pd
+import sys
 import os
+import json
+from datetime import datetime, timedelta
+
+try:
+    import pandas as pd
+except ImportError:
+    print("Error: pandas module not found. Please install requirements.txt.")
+    sys.exit(1)
 
 class MedicineRecord:
     def __init__(self, name, stock, expiry_date, daily_sales):
@@ -16,9 +22,13 @@ class MedicineRecord:
         self.daily_sales = daily_sales
     
     def days_until_expiry(self):
-        expiry = datetime.strptime(self.expiry_date, "%Y-%m-%d")
-        return (expiry - datetime.now()).days
-    
+        try:
+            expiry = datetime.strptime(self.expiry_date, "%Y-%m-%d")
+            return (expiry - datetime.now()).days
+        except ValueError:
+            # Handle invalid date format
+            return 365 # Default to far future if invalid
+
     def predicted_sales_before_expiry(self):
         return self.daily_sales * max(0, self.days_until_expiry())
 
@@ -32,10 +42,14 @@ class StockSenseAgent:
         
         print(f"{self.logger_prefix} Starting inventory scan...")
         
+        if not os.path.exists(inventory_file):
+            print(f"{self.logger_prefix} ERROR: Inventory file not found: {inventory_file}")
+            return None
+
         try:
             inventory = pd.read_csv(inventory_file)
-        except FileNotFoundError:
-            print(f"{self.logger_prefix} ERROR: Could not load inventory data from {inventory_file}")
+        except Exception as e:
+            print(f"{self.logger_prefix} ERROR: Could not load inventory data from {inventory_file}. Error: {e}")
             return None
         
         recommendations = {
@@ -47,47 +61,52 @@ class StockSenseAgent:
         
         # Analyze each medicine
         for _, medicine in inventory.iterrows():
-            medicine_obj = MedicineRecord(
-                name=medicine['name'],
-                stock=medicine['stock'],
-                expiry_date=medicine['expiry_date'],
-                daily_sales=medicine['daily_sales']
-            )
-            
-            days_left = medicine_obj.days_until_expiry()
-            
-            # Alert: Expiring soon
-            if days_left <= 30 and days_left > 0:
-                recommendations["expiry_alerts"].append({
-                    "medicine": medicine_obj.name,
-                    "days_left": days_left,
-                    "stock": medicine_obj.stock,
-                    "urgency": "CRITICAL" if days_left <= 7 else "HIGH"
-                })
-                print(f"{self.logger_prefix} ALERT: {medicine_obj.name} expires in {days_left} days")
-            
-            # Recommend discount for near-expiry
-            if 7 <= days_left <= 14:
-                predicted_sales = medicine_obj.predicted_sales_before_expiry()
-                if predicted_sales < medicine_obj.stock * 0.5:
-                    discount_pct = 15 if predicted_sales < medicine_obj.stock * 0.3 else 10
-                    recommendations["discount_recommendations"].append({
+            try:
+                medicine_obj = MedicineRecord(
+                    name=medicine['name'],
+                    stock=medicine['stock'],
+                    expiry_date=medicine['expiry_date'],
+                    daily_sales=medicine['daily_sales']
+                )
+
+                days_left = medicine_obj.days_until_expiry()
+
+                # Alert: Expiring soon
+                if days_left <= 30 and days_left > 0:
+                    recommendations["expiry_alerts"].append({
                         "medicine": medicine_obj.name,
-                        "discount_percent": discount_pct,
-                        "expected_clear_pct": 80,
-                        "revenue_recovery": int(medicine_obj.stock * 0.1 * 100)
+                        "days_left": days_left,
+                        "stock": medicine_obj.stock,
+                        "urgency": "CRITICAL" if days_left <= 7 else "HIGH"
                     })
-                    print(f"{self.logger_prefix} RECOMMEND: {discount_pct}% discount on {medicine_obj.name}")
-            
-            # Recommend restock
-            if medicine_obj.stock < 20:
-                recommendations["restock_orders"].append({
-                    "medicine": medicine_obj.name,
-                    "recommended_qty": 100,
-                    "supplier": "Default Supplier",
-                    "estimated_cost": 5000
-                })
-                print(f"{self.logger_prefix} ORDER: Restock {medicine_obj.name}")
+                    print(f"{self.logger_prefix} ALERT: {medicine_obj.name} expires in {days_left} days")
+
+                # Recommend discount for near-expiry
+                if 7 <= days_left <= 14:
+                    predicted_sales = medicine_obj.predicted_sales_before_expiry()
+                    if predicted_sales < medicine_obj.stock * 0.5:
+                        discount_pct = 15 if predicted_sales < medicine_obj.stock * 0.3 else 10
+                        recommendations["discount_recommendations"].append({
+                            "medicine": medicine_obj.name,
+                            "discount_percent": discount_pct,
+                            "expected_clear_pct": 80,
+                            "revenue_recovery": int(medicine_obj.stock * 0.1 * 100)
+                        })
+                        print(f"{self.logger_prefix} RECOMMEND: {discount_pct}% discount on {medicine_obj.name}")
+
+                # Recommend restock
+                if medicine_obj.stock < 20:
+                    recommendations["restock_orders"].append({
+                        "medicine": medicine_obj.name,
+                        "recommended_qty": 100,
+                        "supplier": "Default Supplier",
+                        "estimated_cost": 5000
+                    })
+                    print(f"{self.logger_prefix} ORDER: Restock {medicine_obj.name}")
+
+            except KeyError as e:
+                 print(f"{self.logger_prefix} WARNING: Missing column in inventory data: {e}")
+                 continue
         
         print(f"{self.logger_prefix} Scan complete!")
         print(f"{self.logger_prefix} - Expiry alerts: {len(recommendations['expiry_alerts'])}")
@@ -98,13 +117,19 @@ class StockSenseAgent:
     
     def save_recommendations(self, recommendations, output_file="output/recommendations.json"):
         """Save agent recommendations to file"""
-        os.makedirs(os.path.dirname(output_file), exist_ok=True)
-        with open(output_file, "w") as f:
-            json.dump(recommendations, f, indent=2)
-        print(f"{self.logger_prefix} Recommendations saved to {output_file}")
+        try:
+            os.makedirs(os.path.dirname(output_file), exist_ok=True)
+            with open(output_file, "w") as f:
+                json.dump(recommendations, f, indent=2)
+            print(f"{self.logger_prefix} Recommendations saved to {output_file}")
+        except IOError as e:
+            print(f"{self.logger_prefix} ERROR: Could not save recommendations to {output_file}. Error: {e}")
 
-if __name__ == "__main__":
+def main():
     agent = StockSenseAgent()
     recommendations = agent.scan_inventory()
     if recommendations:
         agent.save_recommendations(recommendations)
+
+if __name__ == "__main__":
+    main()
