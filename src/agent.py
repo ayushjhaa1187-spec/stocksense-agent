@@ -38,6 +38,12 @@ class StockSenseAgent:
             print(f"{self.logger_prefix} ERROR: Could not load inventory data from {inventory_file}")
             return None
         
+        # Security: Validate CSV Schema
+        required_columns = ["name", "stock", "expiry_date", "daily_sales"]
+        if not all(col in inventory.columns for col in required_columns):
+            print(f"{self.logger_prefix} ERROR: Inventory file missing required columns. Expected: {required_columns}")
+            return None
+
         recommendations = {
             "timestamp": datetime.now().isoformat(),
             "expiry_alerts": [],
