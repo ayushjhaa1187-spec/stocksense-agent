@@ -12,12 +12,11 @@ class MedicineRecord:
     def __init__(self, name, stock, expiry_date, daily_sales):
         self.name = name
         self.stock = stock
-        self.expiry_date = expiry_date
+        self.expiry_date = datetime.strptime(expiry_date, "%Y-%m-%d")
         self.daily_sales = daily_sales
     
     def days_until_expiry(self):
-        expiry = datetime.strptime(self.expiry_date, "%Y-%m-%d")
-        return (expiry - datetime.now()).days
+        return (self.expiry_date - datetime.now()).days
     
     def predicted_sales_before_expiry(self):
         return self.daily_sales * max(0, self.days_until_expiry())
