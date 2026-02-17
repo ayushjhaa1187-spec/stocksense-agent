@@ -99,7 +99,7 @@ class StockSenseAgent:
     def save_recommendations(self, recommendations, output_file="output/recommendations.json"):
         """Save agent recommendations to file"""
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
-        with open(output_file, "w") as f:
+        with os.fdopen(os.open(output_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "w") as f:
             json.dump(recommendations, f, indent=2)
         print(f"{self.logger_prefix} Recommendations saved to {output_file}")
 
