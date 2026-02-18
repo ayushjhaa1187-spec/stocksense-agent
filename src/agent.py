@@ -71,8 +71,17 @@ class StockSenseAgent:
         
         print(f"{self.logger_prefix} Starting inventory scan...")
         
+        # Security check: Prevent path traversal
+        # Ensure inventory_file is inside the 'data/' directory
+        base_dir = os.path.realpath("data")
+        file_path = os.path.realpath(inventory_file)
+
+        if os.path.commonpath([base_dir, file_path]) != base_dir:
+            print(f"{self.logger_prefix} SECURITY ALERT: Path traversal attempt blocked: {inventory_file}")
+            return None
+
         try:
-            inventory = pd.read_csv(inventory_file)
+            inventory = pd.read_csv(file_path)
         except FileNotFoundError:
             print(f"{self.logger_prefix} ERROR: Could not load inventory data from {inventory_file}")
             return None
