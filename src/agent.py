@@ -48,6 +48,20 @@ class MedicineRecord:
         return self.daily_sales * max(0, self.days_until_expiry(current_date))
 
 class StockSenseAgent:
+    EXPIRY_ALERT_DAYS = 30
+    EXPIRY_CRITICAL_DAYS = 7
+    DISCOUNT_WINDOW_START_DAYS = 7
+    DISCOUNT_WINDOW_END_DAYS = 14
+    DISCOUNT_TRIGGER_RATIO = 0.5
+    DISCOUNT_TIER_RATIO = 0.3
+    DISCOUNT_HIGH_PCT = 15
+    DISCOUNT_LOW_PCT = 10
+    EXPECTED_CLEAR_PCT = 80
+    REVENUE_RECOVERY_RATIO = 0.1
+    RESTOCK_THRESHOLD = 20
+    RESTOCK_QTY = 100
+    RESTOCK_COST_ESTIMATE = 5000
+
     def __init__(self):
         self.name = "stocksense_agent"
         self.logger_prefix = "[StockSense Agent]"
@@ -109,35 +123,35 @@ class StockSenseAgent:
             days_left = medicine_obj.days_until_expiry(current_date=current_date)
             
             # Alert: Expiring soon
-            if days_left <= 30 and days_left > 0:
+            if days_left <= self.EXPIRY_ALERT_DAYS and days_left > 0:
                 recommendations["expiry_alerts"].append({
                     "medicine": medicine_obj.name,
                     "days_left": days_left,
                     "stock": medicine_obj.stock,
-                    "urgency": "CRITICAL" if days_left <= 7 else "HIGH"
+                    "urgency": "CRITICAL" if days_left <= self.EXPIRY_CRITICAL_DAYS else "HIGH"
                 })
                 print(f"{self.logger_prefix} ALERT: {medicine_obj.name} expires in {days_left} days")
             
             # Recommend discount for near-expiry
-            if 7 <= days_left <= 14:
+            if self.DISCOUNT_WINDOW_START_DAYS <= days_left <= self.DISCOUNT_WINDOW_END_DAYS:
                 predicted_sales = medicine_obj.predicted_sales_before_expiry(current_date=current_date)
-                if predicted_sales < medicine_obj.stock * 0.5:
-                    discount_pct = 15 if predicted_sales < medicine_obj.stock * 0.3 else 10
+                if predicted_sales < medicine_obj.stock * self.DISCOUNT_TRIGGER_RATIO:
+                    discount_pct = self.DISCOUNT_HIGH_PCT if predicted_sales < medicine_obj.stock * self.DISCOUNT_TIER_RATIO else self.DISCOUNT_LOW_PCT
                     recommendations["discount_recommendations"].append({
                         "medicine": medicine_obj.name,
                         "discount_percent": discount_pct,
-                        "expected_clear_pct": 80,
-                        "revenue_recovery": int(medicine_obj.stock * 0.1 * 100)
+                        "expected_clear_pct": self.EXPECTED_CLEAR_PCT,
+                        "revenue_recovery": int(medicine_obj.stock * self.REVENUE_RECOVERY_RATIO * 100)
                     })
                     print(f"{self.logger_prefix} RECOMMEND: {discount_pct}% discount on {medicine_obj.name}")
             
             # Recommend restock
-            if medicine_obj.stock < 20:
+            if medicine_obj.stock < self.RESTOCK_THRESHOLD:
                 recommendations["restock_orders"].append({
                     "medicine": medicine_obj.name,
-                    "recommended_qty": 100,
+                    "recommended_qty": self.RESTOCK_QTY,
                     "supplier": "Default Supplier",
-                    "estimated_cost": 5000
+                    "estimated_cost": self.RESTOCK_COST_ESTIMATE
                 })
                 print(f"{self.logger_prefix} ORDER: Restock {medicine_obj.name}")
         
