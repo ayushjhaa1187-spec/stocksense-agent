@@ -4,6 +4,7 @@ Powered by Fetch.ai uAgents
 """
 
 from datetime import datetime, timedelta
+import logging
 import json
 import pandas as pd
 import os
@@ -50,7 +51,7 @@ class MedicineRecord:
 class StockSenseAgent:
     def __init__(self):
         self.name = "stocksense_agent"
-        self.logger_prefix = "[StockSense Agent]"
+        self.logger = logging.getLogger("StockSense Agent")
     
     def scan_inventory(self, inventory_file="data/sample_inventory.csv"):
         """Main agent cycle: scan inventory and generate recommendations.
@@ -69,12 +70,12 @@ class StockSenseAgent:
                  restock_orders, and timestamp
         """
         
-        print(f"{self.logger_prefix} Starting inventory scan...")
+        self.logger.info("Starting inventory scan...")
         
         try:
             inventory = pd.read_csv(inventory_file)
         except FileNotFoundError:
-            print(f"{self.logger_prefix} ERROR: Could not load inventory data from {inventory_file}")
+            self.logger.error(f"Could not load inventory data from {inventory_file}")
             return None
         
         # OPTIMIZATION 1: Vectorized date parsing
@@ -116,7 +117,7 @@ class StockSenseAgent:
                     "stock": medicine_obj.stock,
                     "urgency": "CRITICAL" if days_left <= 7 else "HIGH"
                 })
-                print(f"{self.logger_prefix} ALERT: {medicine_obj.name} expires in {days_left} days")
+                self.logger.warning(f"ALERT: {medicine_obj.name} expires in {days_left} days")
             
             # Recommend discount for near-expiry
             if 7 <= days_left <= 14:
@@ -129,7 +130,7 @@ class StockSenseAgent:
                         "expected_clear_pct": 80,
                         "revenue_recovery": int(medicine_obj.stock * 0.1 * 100)
                     })
-                    print(f"{self.logger_prefix} RECOMMEND: {discount_pct}% discount on {medicine_obj.name}")
+                    self.logger.info(f"RECOMMEND: {discount_pct}% discount on {medicine_obj.name}")
             
             # Recommend restock
             if medicine_obj.stock < 20:
@@ -139,12 +140,12 @@ class StockSenseAgent:
                     "supplier": "Default Supplier",
                     "estimated_cost": 5000
                 })
-                print(f"{self.logger_prefix} ORDER: Restock {medicine_obj.name}")
+                self.logger.info(f"ORDER: Restock {medicine_obj.name}")
         
-        print(f"{self.logger_prefix} Scan complete!")
-        print(f"{self.logger_prefix} - Expiry alerts: {len(recommendations['expiry_alerts'])}")
-        print(f"{self.logger_prefix} - Discount recommendations: {len(recommendations['discount_recommendations'])}")
-        print(f"{self.logger_prefix} - Restock orders: {len(recommendations['restock_orders'])}")
+        self.logger.info("Scan complete!")
+        self.logger.info(f"- Expiry alerts: {len(recommendations['expiry_alerts'])}")
+        self.logger.info(f"- Discount recommendations: {len(recommendations['discount_recommendations'])}")
+        self.logger.info(f"- Restock orders: {len(recommendations['restock_orders'])}")
         
         return recommendations
     
@@ -153,9 +154,10 @@ class StockSenseAgent:
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
         with open(output_file, "w") as f:
             json.dump(recommendations, f, indent=2)
-        print(f"{self.logger_prefix} Recommendations saved to {output_file}")
+        self.logger.info(f"Recommendations saved to {output_file}")
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     agent = StockSenseAgent()
     recommendations = agent.scan_inventory()
     if recommendations:
