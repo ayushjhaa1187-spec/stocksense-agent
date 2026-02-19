@@ -52,6 +52,22 @@ class StockSenseAgent:
         self.name = "stocksense_agent"
         self.logger_prefix = "[StockSense Agent]"
     
+    def _validate_path(self, path, allowed_dir):
+        """Validate that path is within allowed_dir"""
+        # Resolve absolute paths and symlinks
+        abs_allowed = os.path.realpath(allowed_dir)
+        abs_path = os.path.realpath(path)
+
+        # Use commonpath to check containment
+        try:
+            common = os.path.commonpath([abs_path, abs_allowed])
+        except ValueError:
+            # Can happen on Windows if paths are on different drives
+            raise ValueError(f"Security Error: Path '{path}' is invalid or on a different drive than '{allowed_dir}'")
+
+        if common != abs_allowed:
+            raise ValueError(f"Security Error: Path '{path}' is outside allowed directory '{allowed_dir}'")
+
     def scan_inventory(self, inventory_file="data/sample_inventory.csv"):
         """Main agent cycle: scan inventory and generate recommendations.
         
@@ -71,6 +87,9 @@ class StockSenseAgent:
         
         print(f"{self.logger_prefix} Starting inventory scan...")
         
+        # SECURITY: Validate input path
+        self._validate_path(inventory_file, "data")
+
         try:
             inventory = pd.read_csv(inventory_file)
         except FileNotFoundError:
@@ -150,6 +169,9 @@ class StockSenseAgent:
     
     def save_recommendations(self, recommendations, output_file="output/recommendations.json"):
         """Save agent recommendations to file"""
+        # SECURITY: Validate output path
+        self._validate_path(output_file, "output")
+
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
         with open(output_file, "w") as f:
             json.dump(recommendations, f, indent=2)
