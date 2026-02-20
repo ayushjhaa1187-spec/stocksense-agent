@@ -11,6 +11,34 @@
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+        }
+
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #000;
+            color: white;
+            padding: 8px;
+            z-index: 1000;
+            transition: top 0.3s;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 0 0 4px 0;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -275,6 +303,7 @@
     </style>
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <header>
         <div class="header-content">
             <div class="logo">StockSense Agent</div>
@@ -286,7 +315,7 @@
         </div>
     </header>
 
-    <div class="hero">
+    <div class="hero" id="main-content">
         <div class="hero-content">
             <h1>StockSense Agent</h1>
             <p>Autonomous AI Agent for Pharmacy Inventory Management</p>
