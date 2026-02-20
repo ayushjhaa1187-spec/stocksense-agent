@@ -1,0 +1,4 @@
+## 2024-05-24 - Path Traversal in Data Pipelines
+**Vulnerability:** `StockSenseAgent.scan_inventory` and `save_recommendations` accepted unsanitized file paths, allowing path traversal (e.g., `../../../etc/passwd`) to read or write arbitrary files.
+**Learning:** `os.path.abspath` resolves `..` but does not enforce a root directory constraint. `os.path.commonpath` must be used to strictly enforce that the resolved target path is a descendant of the allowed base directory. Mocking global imports like `pandas` requires `importlib.reload()` in subsequent tests to ensure the module picks up the fresh mock.
+**Prevention:** Always use a helper like `_validate_path(path, base_dir)` that resolves both paths with `os.path.realpath` and verifies containment with `os.path.commonpath` before any file I/O.

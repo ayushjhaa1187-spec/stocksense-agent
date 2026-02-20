@@ -52,6 +52,18 @@ class StockSenseAgent:
         self.name = "stocksense_agent"
         self.logger_prefix = "[StockSense Agent]"
     
+    def _validate_path(self, file_path, base_dir):
+        """Validates that file_path is within the base_dir."""
+        # Resolve absolute paths
+        abs_base = os.path.realpath(base_dir)
+        abs_path = os.path.realpath(file_path)
+
+        # Check if path is within base_dir
+        if os.path.commonpath([abs_base, abs_path]) != abs_base:
+            raise ValueError(f"Path traversal attempt: {file_path} is outside {base_dir}")
+
+        return abs_path
+
     def scan_inventory(self, inventory_file="data/sample_inventory.csv"):
         """Main agent cycle: scan inventory and generate recommendations.
         
@@ -72,9 +84,10 @@ class StockSenseAgent:
         print(f"{self.logger_prefix} Starting inventory scan...")
         
         try:
+            self._validate_path(inventory_file, "data")
             inventory = pd.read_csv(inventory_file)
-        except FileNotFoundError:
-            print(f"{self.logger_prefix} ERROR: Could not load inventory data from {inventory_file}")
+        except (FileNotFoundError, ValueError) as e:
+            print(f"{self.logger_prefix} ERROR: {e}")
             return None
         
         # OPTIMIZATION 1: Vectorized date parsing
@@ -150,10 +163,14 @@ class StockSenseAgent:
     
     def save_recommendations(self, recommendations, output_file="output/recommendations.json"):
         """Save agent recommendations to file"""
-        os.makedirs(os.path.dirname(output_file), exist_ok=True)
-        with open(output_file, "w") as f:
-            json.dump(recommendations, f, indent=2)
-        print(f"{self.logger_prefix} Recommendations saved to {output_file}")
+        try:
+            self._validate_path(output_file, "output")
+            os.makedirs(os.path.dirname(output_file), exist_ok=True)
+            with open(output_file, "w") as f:
+                json.dump(recommendations, f, indent=2)
+            print(f"{self.logger_prefix} Recommendations saved to {output_file}")
+        except ValueError as e:
+            print(f"{self.logger_prefix} ERROR: {e}")
 
 if __name__ == "__main__":
     agent = StockSenseAgent()

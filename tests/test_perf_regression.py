@@ -18,8 +18,12 @@ sys.modules['pandas'] = MagicMock()
 import pandas as pd
 
 import os
+import importlib
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
+import agent
+# Reload agent to ensure it uses the fresh pandas mock
+importlib.reload(agent)
 from agent import StockSenseAgent
 
 class TestOptimization(unittest.TestCase):
@@ -60,7 +64,7 @@ class TestOptimization(unittest.TestCase):
             
             # Run scan_inventory
             agent = StockSenseAgent()
-            agent.scan_inventory('dummy.csv')
+            agent.scan_inventory('data/dummy.csv')
             
             # VERIFICATION 1: strptime should NOT be called inside the loop
             # (because we pass datetime objects directly)
