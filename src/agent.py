@@ -3,7 +3,7 @@ StockSense Agent - Autonomous pharmacy inventory manager
 Powered by Fetch.ai uAgents
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 import json
 import pandas as pd
 import os
@@ -52,6 +52,25 @@ class StockSenseAgent:
         self.name = "stocksense_agent"
         self.logger_prefix = "[StockSense Agent]"
     
+    def _validate_path(self, path):
+        """Security check to prevent path traversal."""
+        base_dir = os.path.realpath(os.getcwd())
+        data_dir = os.path.join(base_dir, "data")
+        output_dir = os.path.join(base_dir, "output")
+
+        try:
+            abs_path = os.path.realpath(path)
+        except Exception:
+            return False
+
+        # Allow access to data/ and output/ directories
+        if os.path.commonpath([data_dir, abs_path]) == data_dir:
+            return True
+        if os.path.commonpath([output_dir, abs_path]) == output_dir:
+            return True
+
+        return False
+
     def scan_inventory(self, inventory_file="data/sample_inventory.csv"):
         """Main agent cycle: scan inventory and generate recommendations.
         
@@ -71,17 +90,29 @@ class StockSenseAgent:
         
         print(f"{self.logger_prefix} Starting inventory scan...")
         
+        # Security: Validate Path
+        if not self._validate_path(inventory_file):
+            print(f"{self.logger_prefix} SECURITY ALERT: Path traversal attempt blocked: {inventory_file}")
+            return None
+
         try:
+            inventory_file = os.path.realpath(inventory_file)
             inventory = pd.read_csv(inventory_file)
         except FileNotFoundError:
             print(f"{self.logger_prefix} ERROR: Could not load inventory data from {inventory_file}")
             return None
         
+        # Security: Validate CSV Schema
+        required_columns = ["name", "stock", "expiry_date", "daily_sales"]
+        if not all(col in inventory.columns for col in required_columns):
+            print(f"{self.logger_prefix} ERROR: Inventory file missing required columns. Expected: {required_columns}")
+            return None
+
         # OPTIMIZATION 1: Vectorized date parsing
         # Convert entire column at once instead of per-row parsing
         # This reduces O(N) strptime calls to O(1) vectorized operation
         if 'expiry_date' in inventory.columns:
-            inventory['expiry_date'] = pd.to_datetime(inventory['expiry_date'])
+            inventory['expiry_date'] = pd.to_datetime(inventory['expiry_date'], errors='coerce')
         
         recommendations = {
             "timestamp": datetime.now().isoformat(),
@@ -151,7 +182,7 @@ class StockSenseAgent:
     def save_recommendations(self, recommendations, output_file="output/recommendations.json"):
         """Save agent recommendations to file"""
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
-        with open(output_file, "w") as f:
+        with os.fdopen(os.open(output_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "w") as f:
             json.dump(recommendations, f, indent=2)
         print(f"{self.logger_prefix} Recommendations saved to {output_file}")
 
