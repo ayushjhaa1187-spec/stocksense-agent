@@ -1,0 +1,3 @@
+## 2024-05-21 - Critical Accessibility Features Missing Despite Memory
+**Learning:** The agent's memory indicated that a 'Skip to main content' link and smooth scrolling were implemented in `index.html`, but upon inspection, they were missing. This highlights that memory or documentation can drift from the actual codebase state, leading to false confidence in accessibility compliance.
+**Action:** Always verify accessibility claims by inspecting the DOM/source code directly before assuming features exist. Prioritize implementation of basic accessibility requirements (like skip links) over "delight" features when both are missing.
