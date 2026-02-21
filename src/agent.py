@@ -51,6 +51,34 @@ class StockSenseAgent:
     def __init__(self):
         self.name = "stocksense_agent"
         self.logger_prefix = "[StockSense Agent]"
+
+    def _validate_path(self, path, allowed_directory):
+        """Validate that the path is within the allowed directory.
+
+        Args:
+            path: The file path to validate.
+            allowed_directory: The directory that the path must be inside.
+
+        Returns:
+            str: The absolute path if valid.
+
+        Raises:
+            ValueError: If the path is outside the allowed directory.
+        """
+        # Resolve absolute paths
+        abs_path = os.path.realpath(path)
+        abs_allowed = os.path.realpath(allowed_directory)
+
+        # Check if path is within allowed directory using commonpath
+        # commonpath returns the longest common sub-path
+        try:
+            if os.path.commonpath([abs_path, abs_allowed]) != abs_allowed:
+                raise ValueError(f"Path traversal attempt detected: {path} is not within {allowed_directory}")
+        except ValueError:
+            # commonpath raises ValueError if paths are on different drives (Windows)
+            raise ValueError(f"Path traversal attempt detected: {path} is on a different drive than {allowed_directory}")
+
+        return abs_path
     
     def scan_inventory(self, inventory_file="data/sample_inventory.csv"):
         """Main agent cycle: scan inventory and generate recommendations.
@@ -72,6 +100,8 @@ class StockSenseAgent:
         print(f"{self.logger_prefix} Starting inventory scan...")
         
         try:
+            # SECURITY: Validate input path
+            self._validate_path(inventory_file, "data")
             inventory = pd.read_csv(inventory_file)
         except FileNotFoundError:
             print(f"{self.logger_prefix} ERROR: Could not load inventory data from {inventory_file}")
@@ -150,6 +180,9 @@ class StockSenseAgent:
     
     def save_recommendations(self, recommendations, output_file="output/recommendations.json"):
         """Save agent recommendations to file"""
+        # SECURITY: Validate output path
+        self._validate_path(output_file, "output")
+
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
         with open(output_file, "w") as f:
             json.dump(recommendations, f, indent=2)
