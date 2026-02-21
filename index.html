@@ -11,6 +11,35 @@
             box-sizing: border-box;
         }
 
+        @media (prefers-reduced-motion: no-preference) {
+            html {
+                scroll-behavior: smooth;
+            }
+        }
+
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #667eea;
+            color: white;
+            padding: 8px;
+            z-index: 1000;
+            transition: top 0.3s;
+            text-decoration: none;
+            font-weight: bold;
+            border-bottom-right-radius: 8px;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
+        :focus-visible {
+            outline: 3px solid #764ba2;
+            outline-offset: 2px;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -275,6 +304,7 @@
     </style>
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <header>
         <div class="header-content">
             <div class="logo">StockSense Agent</div>
@@ -286,6 +316,7 @@
         </div>
     </header>
 
+    <main id="main-content">
     <div class="hero">
         <div class="hero-content">
             <h1>StockSense Agent</h1>
@@ -367,6 +398,7 @@
             </div>
         </div>
     </section>
+    </main>
 
     <footer>
         <p>&copy; 2024 StockSense Agent. Built with ❤️ for pharmacy optimization.</p>
