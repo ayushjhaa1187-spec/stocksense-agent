@@ -52,6 +52,33 @@ class StockSenseAgent:
         self.name = "stocksense_agent"
         self.logger_prefix = "[StockSense Agent]"
     
+    def _validate_path(self, path, base_dir):
+        """Validate that path is within base_dir.
+
+        Args:
+            path: Path to validate
+            base_dir: Allowed base directory
+
+        Raises:
+            ValueError: If path is not within base_dir
+        """
+        # Resolve absolute paths
+        abs_base = os.path.realpath(base_dir)
+        abs_path = os.path.realpath(path)
+
+        # Ensure base_dir exists or at least resolves to a valid path structure
+        # If base_dir doesn't exist, realpath might return it as is or resolve symlinks if components exist.
+
+        try:
+            # commonpath raises ValueError if paths are on different drives
+            if os.path.commonpath([abs_base, abs_path]) != abs_base:
+                raise ValueError(f"Path traversal detected: {path} is outside allowed directory {base_dir}")
+        except ValueError:
+            # Handle different drives case
+            raise ValueError(f"Path traversal detected: {path} is outside allowed directory {base_dir}")
+
+        return abs_path
+
     def scan_inventory(self, inventory_file="data/sample_inventory.csv"):
         """Main agent cycle: scan inventory and generate recommendations.
         
@@ -71,6 +98,13 @@ class StockSenseAgent:
         
         print(f"{self.logger_prefix} Starting inventory scan...")
         
+        # Security: Validate input path
+        try:
+            self._validate_path(inventory_file, "data")
+        except ValueError as e:
+            print(f"{self.logger_prefix} SECURITY ERROR: {e}")
+            raise
+
         try:
             inventory = pd.read_csv(inventory_file)
         except FileNotFoundError:
@@ -150,6 +184,14 @@ class StockSenseAgent:
     
     def save_recommendations(self, recommendations, output_file="output/recommendations.json"):
         """Save agent recommendations to file"""
+
+        # Security: Validate output path
+        try:
+            self._validate_path(output_file, "output")
+        except ValueError as e:
+            print(f"{self.logger_prefix} SECURITY ERROR: {e}")
+            raise
+
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
         with open(output_file, "w") as f:
             json.dump(recommendations, f, indent=2)
