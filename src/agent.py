@@ -52,6 +52,17 @@ class StockSenseAgent:
         self.name = "stocksense_agent"
         self.logger_prefix = "[StockSense Agent]"
     
+    def _validate_path(self, path, base_dir):
+        """Validate that path is within the base_dir."""
+        # Get absolute paths
+        abs_path = os.path.realpath(path)
+        abs_base = os.path.realpath(base_dir)
+
+        # Check if path starts with base_dir
+        if not os.path.commonpath([abs_path, abs_base]) == abs_base:
+            raise ValueError(f"Security Error: Path '{path}' must be within '{base_dir}' directory.")
+        return abs_path
+
     def scan_inventory(self, inventory_file="data/sample_inventory.csv"):
         """Main agent cycle: scan inventory and generate recommendations.
         
@@ -72,6 +83,7 @@ class StockSenseAgent:
         print(f"{self.logger_prefix} Starting inventory scan...")
         
         try:
+            self._validate_path(inventory_file, "data")
             inventory = pd.read_csv(inventory_file)
         except FileNotFoundError:
             print(f"{self.logger_prefix} ERROR: Could not load inventory data from {inventory_file}")
@@ -150,6 +162,7 @@ class StockSenseAgent:
     
     def save_recommendations(self, recommendations, output_file="output/recommendations.json"):
         """Save agent recommendations to file"""
+        self._validate_path(output_file, "output")
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
         with open(output_file, "w") as f:
             json.dump(recommendations, f, indent=2)
