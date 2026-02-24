@@ -3,7 +3,7 @@ StockSense Agent - Autonomous pharmacy inventory manager
 Powered by Fetch.ai uAgents
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 import json
 import pandas as pd
 import os
