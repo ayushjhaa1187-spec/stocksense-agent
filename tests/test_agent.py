@@ -10,7 +10,7 @@ sys.modules['pandas'] = MagicMock()
 # Add src to python path to allow imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
-from agent import MedicineRecord
+from agent import MedicineRecord, StockSenseAgent
 
 @pytest.fixture
 def mock_datetime_now():
@@ -51,3 +51,17 @@ def test_days_until_expiry_invalid_format(mock_datetime_now):
 
     with pytest.raises(ValueError):
         record.days_until_expiry()
+
+def test_scan_inventory_file_not_found():
+    # Arrange: Mock pd.read_csv to raise FileNotFoundError
+    with patch('agent.pd.read_csv') as mock_read_csv:
+        mock_read_csv.side_effect = FileNotFoundError()
+
+        agent = StockSenseAgent()
+
+        # Act: Run scan_inventory with a non-existent file
+        result = agent.scan_inventory("non_existent_file.csv")
+
+        # Assert: Check that it returns None and not raises an exception
+        assert result is None
+        mock_read_csv.assert_called_once_with("non_existent_file.csv")

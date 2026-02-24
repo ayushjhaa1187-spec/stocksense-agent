@@ -9,6 +9,7 @@ Verifies that optimization remains in place:
 
 import sys
 import unittest
+import importlib
 from unittest.mock import MagicMock, patch
 from datetime import datetime
 from collections import namedtuple
@@ -20,6 +21,8 @@ import pandas as pd
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
+import agent
+importlib.reload(agent)
 from agent import StockSenseAgent
 
 class TestOptimization(unittest.TestCase):
