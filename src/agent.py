@@ -9,6 +9,7 @@ import pandas as pd
 import os
 
 class MedicineRecord:
+    __slots__ = ['name', 'stock', 'expiry_date', 'daily_sales']
     def __init__(self, name, stock, expiry_date, daily_sales):
         self.name = name
         self.stock = stock
