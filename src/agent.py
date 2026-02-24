@@ -8,6 +8,8 @@ import json
 import pandas as pd
 import os
 
+DEFAULT_INVENTORY_FILE = "data/sample_inventory.csv"
+
 class MedicineRecord:
     def __init__(self, name, stock, expiry_date, daily_sales):
         self.name = name
@@ -52,7 +54,7 @@ class StockSenseAgent:
         self.name = "stocksense_agent"
         self.logger_prefix = "[StockSense Agent]"
     
-    def scan_inventory(self, inventory_file="data/sample_inventory.csv"):
+    def scan_inventory(self, inventory_file=None):
         """Main agent cycle: scan inventory and generate recommendations.
         
         Performance optimizations:
@@ -62,12 +64,15 @@ class StockSenseAgent:
         
         Args:
             inventory_file: Path to CSV file with columns:
-                          name, stock, expiry_date, daily_sales
+                          name, stock, expiry_date, daily_sales.
+                          If None, uses INVENTORY_FILE env var or DEFAULT_INVENTORY_FILE.
         
         Returns:
             dict: Recommendations with expiry_alerts, discount_recommendations,
                  restock_orders, and timestamp
         """
+        if inventory_file is None:
+            inventory_file = os.getenv("INVENTORY_FILE", DEFAULT_INVENTORY_FILE)
         
         print(f"{self.logger_prefix} Starting inventory scan...")
         
