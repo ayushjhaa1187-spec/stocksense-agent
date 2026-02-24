@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, mock_open
 import sys
 import os
 
@@ -10,7 +10,7 @@ sys.modules['pandas'] = MagicMock()
 # Add src to python path to allow imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
-from agent import MedicineRecord
+from agent import MedicineRecord, StockSenseAgent
 
 @pytest.fixture
 def mock_datetime_now():
@@ -51,3 +51,22 @@ def test_days_until_expiry_invalid_format(mock_datetime_now):
 
     with pytest.raises(ValueError):
         record.days_until_expiry()
+
+def test_save_recommendations():
+    """Test saving recommendations to file."""
+    agent = StockSenseAgent()
+    data = {"test": "data"}
+    file_path = "output/test.json"
+
+    with patch("builtins.open", mock_open()) as mock_file:
+        with patch("os.makedirs") as mock_makedirs:
+            agent.save_recommendations(data, file_path)
+
+            # Verify directory creation
+            mock_makedirs.assert_called_once_with("output", exist_ok=True)
+
+            # Verify file opening
+            mock_file.assert_called_once_with(file_path, "w")
+
+            # Verify writing happened
+            assert mock_file().write.called
