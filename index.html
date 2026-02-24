@@ -5,10 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StockSense Agent - Pharmacy Inventory AI</title>
     <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }
+
+        .skip-link {
+            position: absolute;
+            top: -50px;
+            left: 0;
+            background: #000;
+            color: white;
+            padding: 10px 20px;
+            z-index: 2000;
+            text-decoration: none;
+            transition: top 0.3s ease;
+            font-weight: bold;
+            border-bottom-right-radius: 8px;
+        }
+
+        .skip-link:focus {
+            top: 0;
+            outline: 3px solid #667eea;
+            outline-offset: -3px;
         }
 
         body {
@@ -18,6 +42,12 @@
             display: flex;
             flex-direction: column;
             color: #333;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         header {
@@ -275,6 +305,7 @@
     </style>
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <header>
         <div class="header-content">
             <div class="logo">StockSense Agent</div>
@@ -286,87 +317,89 @@
         </div>
     </header>
 
-    <div class="hero">
-        <div class="hero-content">
-            <h1>StockSense Agent</h1>
-            <p>Autonomous AI Agent for Pharmacy Inventory Management</p>
-            <p style="font-size: 18px; opacity: 0.9; margin-bottom: 40px;">Leveraging Fetch.ai Agents to Optimize Pharmaceutical Expiry Management & Stock Control</p>
-            <div class="cta-buttons">
-                <a href="https://github.com/ayushjhaa1187-spec/stocksense-agent" class="btn btn-primary">View on GitHub</a>
-                <a href="#features" class="btn btn-secondary">Learn More</a>
+    <main id="main-content">
+        <div class="hero">
+            <div class="hero-content">
+                <h1>StockSense Agent</h1>
+                <p>Autonomous AI Agent for Pharmacy Inventory Management</p>
+                <p style="font-size: 18px; opacity: 0.9; margin-bottom: 40px;">Leveraging Fetch.ai Agents to Optimize Pharmaceutical Expiry Management & Stock Control</p>
+                <div class="cta-buttons">
+                    <a href="https://github.com/ayushjhaa1187-spec/stocksense-agent" class="btn btn-primary">View on GitHub</a>
+                    <a href="#features" class="btn btn-secondary">Learn More</a>
+                </div>
             </div>
         </div>
-    </div>
 
-    <section class="features" id="features">
-        <div class="features-container">
-            <h2>Key Features</h2>
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">📦</div>
-                    <h3>Smart Inventory Tracking</h3>
-                    <p>Real-time monitoring of pharmaceutical stock levels with automated alerts for low inventory situations.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">⏰</div>
-                    <h3>Expiry Management</h3>
-                    <p>Intelligent expiry date tracking and prediction system to minimize wastage and ensure patient safety.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🤖</div>
-                    <h3>AI-Powered Agent</h3>
-                    <p>Autonomous Fetch.ai agent that learns and optimizes inventory decisions over time.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">💡</div>
-                    <h3>Predictive Analytics</h3>
-                    <p>Machine learning models forecast demand patterns and optimize stock allocation.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📊</div>
-                    <h3>Detailed Analytics</h3>
-                    <p>Comprehensive dashboards providing insights into inventory trends and optimization metrics.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🔐</div>
-                    <h3>Secure & Scalable</h3>
-                    <p>Built with security best practices and designed to scale across multiple pharmacy locations.</p>
+        <section class="features" id="features">
+            <div class="features-container">
+                <h2>Key Features</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📦</div>
+                        <h3>Smart Inventory Tracking</h3>
+                        <p>Real-time monitoring of pharmaceutical stock levels with automated alerts for low inventory situations.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⏰</div>
+                        <h3>Expiry Management</h3>
+                        <p>Intelligent expiry date tracking and prediction system to minimize wastage and ensure patient safety.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🤖</div>
+                        <h3>AI-Powered Agent</h3>
+                        <p>Autonomous Fetch.ai agent that learns and optimizes inventory decisions over time.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">💡</div>
+                        <h3>Predictive Analytics</h3>
+                        <p>Machine learning models forecast demand patterns and optimize stock allocation.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>Detailed Analytics</h3>
+                        <p>Comprehensive dashboards providing insights into inventory trends and optimization metrics.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔐</div>
+                        <h3>Secure & Scalable</h3>
+                        <p>Built with security best practices and designed to scale across multiple pharmacy locations.</p>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="tech-stack" id="tech">
-        <div class="tech-stack-container">
-            <h2>Built With</h2>
-            <div class="tech-grid">
-                <div class="tech-item">
-                    <h3>Fetch.ai</h3>
-                    <p>Autonomous Agent Framework</p>
-                </div>
-                <div class="tech-item">
-                    <h3>Python</h3>
-                    <p>Core Agent Development</p>
-                </div>
-                <div class="tech-item">
-                    <h3>FastAPI</h3>
-                    <p>High-performance Web Framework</p>
-                </div>
-                <div class="tech-item">
-                    <h3>Machine Learning</h3>
-                    <p>Scikit-learn & TensorFlow</p>
-                </div>
-                <div class="tech-item">
-                    <h3>Data Management</h3>
-                    <p>PostgreSQL & MongoDB</p>
-                </div>
-                <div class="tech-item">
-                    <h3>Deployment</h3>
-                    <p>GitHub Pages & Docker</p>
+        <section class="tech-stack" id="tech">
+            <div class="tech-stack-container">
+                <h2>Built With</h2>
+                <div class="tech-grid">
+                    <div class="tech-item">
+                        <h3>Fetch.ai</h3>
+                        <p>Autonomous Agent Framework</p>
+                    </div>
+                    <div class="tech-item">
+                        <h3>Python</h3>
+                        <p>Core Agent Development</p>
+                    </div>
+                    <div class="tech-item">
+                        <h3>FastAPI</h3>
+                        <p>High-performance Web Framework</p>
+                    </div>
+                    <div class="tech-item">
+                        <h3>Machine Learning</h3>
+                        <p>Scikit-learn & TensorFlow</p>
+                    </div>
+                    <div class="tech-item">
+                        <h3>Data Management</h3>
+                        <p>PostgreSQL & MongoDB</p>
+                    </div>
+                    <div class="tech-item">
+                        <h3>Deployment</h3>
+                        <p>GitHub Pages & Docker</p>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
     <footer>
         <p>&copy; 2024 StockSense Agent. Built with ❤️ for pharmacy optimization.</p>
