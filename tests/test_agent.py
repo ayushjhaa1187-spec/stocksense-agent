@@ -42,12 +42,40 @@ def test_days_until_expiry_valid(mock_datetime_now):
 
     assert record.days_until_expiry() == 10
 
-def test_days_until_expiry_invalid_format(mock_datetime_now):
-    # Invalid date format
-    # Even if mock_datetime_now is used, strptime should still raise ValueError
-    # because we wired it to real_datetime.strptime
+def test_medicine_record_init_validation():
+    # Valid string date
+    MedicineRecord(name="Test", stock=10, expiry_date="2023-01-01", daily_sales=5)
+    # Valid datetime date
+    MedicineRecord(name="Test", stock=10, expiry_date=datetime(2023, 1, 1), daily_sales=5.5)
 
-    record = MedicineRecord(name="Test Med", stock=10, expiry_date="11-01-2023", daily_sales=1)
+    # Invalid name type
+    with pytest.raises(TypeError, match="name must be a string"):
+        MedicineRecord(name=123, stock=10, expiry_date="2023-01-01", daily_sales=5)
 
-    with pytest.raises(ValueError):
-        record.days_until_expiry()
+    # Empty name
+    with pytest.raises(ValueError, match="name cannot be empty"):
+        MedicineRecord(name="   ", stock=10, expiry_date="2023-01-01", daily_sales=5)
+
+    # Negative stock
+    with pytest.raises(ValueError, match="stock cannot be negative"):
+        MedicineRecord(name="Test", stock=-1, expiry_date="2023-01-01", daily_sales=5)
+
+    # Invalid stock type
+    with pytest.raises(TypeError, match="stock must be an integer"):
+        MedicineRecord(name="Test", stock=10.5, expiry_date="2023-01-01", daily_sales=5)
+
+    # Invalid daily_sales type
+    with pytest.raises(TypeError, match="daily_sales must be a number"):
+        MedicineRecord(name="Test", stock=10, expiry_date="2023-01-01", daily_sales="5")
+
+    # Negative daily_sales
+    with pytest.raises(ValueError, match="daily_sales cannot be negative"):
+        MedicineRecord(name="Test", stock=10, expiry_date="2023-01-01", daily_sales=-1.0)
+
+    # Invalid expiry_date format
+    with pytest.raises(ValueError, match="expiry_date string must be in YYYY-MM-DD format"):
+        MedicineRecord(name="Test", stock=10, expiry_date="11-01-2023", daily_sales=5)
+
+    # Invalid expiry_date type
+    with pytest.raises(TypeError, match="expiry_date must be a string"):
+        MedicineRecord(name="Test", stock=10, expiry_date=123, daily_sales=5)

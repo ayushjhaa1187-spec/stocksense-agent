@@ -4,12 +4,46 @@ Powered by Fetch.ai uAgents
 """
 
 from datetime import datetime, timedelta
+import datetime as dt_module
 import json
 import pandas as pd
 import os
+from typing import Union
 
 class MedicineRecord:
-    def __init__(self, name, stock, expiry_date, daily_sales):
+    def __init__(self, name: str, stock: int, expiry_date: Union[str, datetime], daily_sales: Union[int, float]):
+        """
+        Initialize a medicine record with validation.
+
+        Args:
+            name: Name of the medicine (non-empty string)
+            stock: Current stock level (non-negative integer)
+            expiry_date: Date of expiry (YYYY-MM-DD string or datetime object)
+            daily_sales: Average units sold per day (non-negative number)
+        """
+        if not isinstance(name, str):
+            raise TypeError("name must be a string")
+        if not name.strip():
+            raise ValueError("name cannot be empty or only whitespace")
+
+        if not isinstance(stock, int):
+            raise TypeError("stock must be an integer")
+        if stock < 0:
+            raise ValueError("stock cannot be negative")
+
+        if not isinstance(daily_sales, (int, float)):
+            raise TypeError("daily_sales must be a number")
+        if daily_sales < 0:
+            raise ValueError("daily_sales cannot be negative")
+
+        if isinstance(expiry_date, str):
+            try:
+                datetime.strptime(expiry_date, "%Y-%m-%d")
+            except ValueError:
+                raise ValueError("expiry_date string must be in YYYY-MM-DD format")
+        elif not isinstance(expiry_date, dt_module.datetime):
+            raise TypeError("expiry_date must be a string (YYYY-MM-DD) or datetime object")
+
         self.name = name
         self.stock = stock
         self.expiry_date = expiry_date
