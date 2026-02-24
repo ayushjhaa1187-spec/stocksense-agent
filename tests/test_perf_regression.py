@@ -53,7 +53,7 @@ class TestOptimization(unittest.TestCase):
         # Mock to_datetime (just returns the column)
         pd.to_datetime = MagicMock()
 
-        with patch('agent.datetime') as mock_datetime:
+        with patch('agent.datetime') as mock_datetime, patch('agent.pd', pd):
             real_datetime = datetime
             mock_datetime.strptime.side_effect = real_datetime.strptime
             mock_datetime.now.return_value = real_datetime(2023, 1, 1)
