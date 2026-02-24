@@ -57,7 +57,7 @@ class StockSenseAgent:
         
         Performance optimizations:
         - Vectorized date parsing with pd.to_datetime (10x faster)
-        - itertuples() instead of iterrows() (5-10x faster)
+        - Vectorized filtering with boolean indexing (Significant speedup for large datasets)
         - Single datetime.now() call outside loop
         
         Args:
@@ -77,9 +77,7 @@ class StockSenseAgent:
             print(f"{self.logger_prefix} ERROR: Could not load inventory data from {inventory_file}")
             return None
         
-        # OPTIMIZATION 1: Vectorized date parsing
-        # Convert entire column at once instead of per-row parsing
-        # This reduces O(N) strptime calls to O(1) vectorized operation
+        # Vectorized date parsing
         if 'expiry_date' in inventory.columns:
             inventory['expiry_date'] = pd.to_datetime(inventory['expiry_date'])
         
@@ -90,56 +88,66 @@ class StockSenseAgent:
             "restock_orders": []
         }
         
-        # OPTIMIZATION 2: Compute current time once outside loop
-        # Avoids repeated datetime.now() calls inside loop
+        # Compute current time once outside loop
         current_date = datetime.now()
 
-        # OPTIMIZATION 3: Use itertuples() instead of iterrows()
-        # itertuples yields named tuples (fast), iterrows creates Series (slow)
-        # This provides 5-10x speedup for large datasets
-        for medicine in inventory.itertuples():
-            medicine_obj = MedicineRecord(
-                name=medicine.name,
-                stock=medicine.stock,
-                expiry_date=medicine.expiry_date,  # Already parsed datetime
-                daily_sales=medicine.daily_sales
-            )
+        # Vectorized calculation of days left
+        # This replaces per-row calculations in the loop
+        if 'expiry_date' in inventory.columns:
+            inventory['days_left'] = (inventory['expiry_date'] - current_date).dt.days
+        else:
+            inventory['days_left'] = 0
+
+        # 1. Expiry alerts (Vectorized filtering)
+        # Only iterate over items that are expiring soon (1-30 days)
+        expiry_mask = (inventory['days_left'] <= 30) & (inventory['days_left'] > 0)
+        expiring_items = inventory[expiry_mask]
+
+        for medicine in expiring_items.itertuples():
+            recommendations["expiry_alerts"].append({
+                "medicine": medicine.name,
+                "days_left": int(medicine.days_left),
+                "stock": medicine.stock,
+                "urgency": "CRITICAL" if medicine.days_left <= 7 else "HIGH"
+            })
+            print(f"{self.logger_prefix} ALERT: {medicine.name} expires in {medicine.days_left} days")
+
+        # 2. Discount recommendations (Vectorized filtering and calculation)
+        # Only consider items with 7-14 days left
+        discount_candidate_mask = (inventory['days_left'] >= 7) & (inventory['days_left'] <= 14)
+        potential_discounts = inventory[discount_candidate_mask].copy()
+
+        if not potential_discounts.empty:
+            # Vectorized prediction of sales before expiry
+            potential_discounts['predicted_sales'] = potential_discounts['daily_sales'] * potential_discounts['days_left']
             
-            # Pass pre-calculated current_date to avoid repeated parsing
-            days_left = medicine_obj.days_until_expiry(current_date=current_date)
+            # Filter for items where predicted sales < 50% of stock
+            needs_discount_mask = potential_discounts['predicted_sales'] < potential_discounts['stock'] * 0.5
+            to_discount = potential_discounts[needs_discount_mask]
             
-            # Alert: Expiring soon
-            if days_left <= 30 and days_left > 0:
-                recommendations["expiry_alerts"].append({
-                    "medicine": medicine_obj.name,
-                    "days_left": days_left,
-                    "stock": medicine_obj.stock,
-                    "urgency": "CRITICAL" if days_left <= 7 else "HIGH"
+            for medicine in to_discount.itertuples():
+                discount_pct = 15 if medicine.predicted_sales < medicine.stock * 0.3 else 10
+                recommendations["discount_recommendations"].append({
+                    "medicine": medicine.name,
+                    "discount_percent": discount_pct,
+                    "expected_clear_pct": 80,
+                    "revenue_recovery": int(medicine.stock * 0.1 * 100)
                 })
-                print(f"{self.logger_prefix} ALERT: {medicine_obj.name} expires in {days_left} days")
-            
-            # Recommend discount for near-expiry
-            if 7 <= days_left <= 14:
-                predicted_sales = medicine_obj.predicted_sales_before_expiry(current_date=current_date)
-                if predicted_sales < medicine_obj.stock * 0.5:
-                    discount_pct = 15 if predicted_sales < medicine_obj.stock * 0.3 else 10
-                    recommendations["discount_recommendations"].append({
-                        "medicine": medicine_obj.name,
-                        "discount_percent": discount_pct,
-                        "expected_clear_pct": 80,
-                        "revenue_recovery": int(medicine_obj.stock * 0.1 * 100)
-                    })
-                    print(f"{self.logger_prefix} RECOMMEND: {discount_pct}% discount on {medicine_obj.name}")
-            
-            # Recommend restock
-            if medicine_obj.stock < 20:
-                recommendations["restock_orders"].append({
-                    "medicine": medicine_obj.name,
-                    "recommended_qty": 100,
-                    "supplier": "Default Supplier",
-                    "estimated_cost": 5000
-                })
-                print(f"{self.logger_prefix} ORDER: Restock {medicine_obj.name}")
+                print(f"{self.logger_prefix} RECOMMEND: {discount_pct}% discount on {medicine.name}")
+
+        # 3. Restock orders (Vectorized filtering)
+        # Only iterate over items with low stock
+        restock_mask = inventory['stock'] < 20
+        to_restock = inventory[restock_mask]
+
+        for medicine in to_restock.itertuples():
+            recommendations["restock_orders"].append({
+                "medicine": medicine.name,
+                "recommended_qty": 100,
+                "supplier": "Default Supplier",
+                "estimated_cost": 5000
+            })
+            print(f"{self.logger_prefix} ORDER: Restock {medicine.name}")
         
         print(f"{self.logger_prefix} Scan complete!")
         print(f"{self.logger_prefix} - Expiry alerts: {len(recommendations['expiry_alerts'])}")
