@@ -51,3 +51,27 @@ def test_days_until_expiry_invalid_format(mock_datetime_now):
 
     with pytest.raises(ValueError):
         record.days_until_expiry()
+
+def test_predicted_sales_before_expiry(mock_datetime_now):
+    # Setup
+    # Mocked now is 2023-01-01
+
+    # Case 1: Future expiry
+    # Expiry 2023-01-11 (10 days away)
+    # Daily sales 5
+    # Expected: 10 * 5 = 50
+    record = MedicineRecord(name="Future Med", stock=100, expiry_date="2023-01-11", daily_sales=5)
+    assert record.predicted_sales_before_expiry() == 50
+
+    # Case 2: Past expiry (expired)
+    # Expiry 2022-12-31 (1 day ago)
+    # Expected: 0 (max(0, -1) * 5)
+    record_expired = MedicineRecord(name="Expired Med", stock=100, expiry_date="2022-12-31", daily_sales=5)
+    assert record_expired.predicted_sales_before_expiry() == 0
+
+    # Case 3: Explicit current_date
+    # Override current date to 2023-01-05
+    # Expiry 2023-01-11 -> 6 days left
+    # Expected: 6 * 5 = 30
+    explicit_date = datetime(2023, 1, 5)
+    assert record.predicted_sales_before_expiry(current_date=explicit_date) == 30
