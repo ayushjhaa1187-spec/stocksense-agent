@@ -8,6 +8,27 @@ import json
 import pandas as pd
 import os
 
+# Configuration for business rules
+DEFAULT_CONFIG = {
+    # Expiry alerts
+    "expiry_alert_days": 30,
+    "expiry_critical_days": 7,
+
+    # Discount logic
+    "discount_min_days": 7,
+    "discount_max_days": 14,
+    "discount_stock_ratio": 0.5,
+    "discount_high_sales_ratio": 0.3,
+    "discount_high_pct": 15,
+    "discount_low_pct": 10,
+    "recovery_factor": 0.1,
+
+    # Restock logic
+    "restock_threshold": 20,
+    "restock_qty": 100,
+    "restock_cost": 5000
+}
+
 class MedicineRecord:
     def __init__(self, name, stock, expiry_date, daily_sales):
         self.name = name
@@ -48,9 +69,14 @@ class MedicineRecord:
         return self.daily_sales * max(0, self.days_until_expiry(current_date))
 
 class StockSenseAgent:
-    def __init__(self):
+    def __init__(self, config=None):
         self.name = "stocksense_agent"
         self.logger_prefix = "[StockSense Agent]"
+
+        # Initialize configuration with defaults and overrides
+        self.config = DEFAULT_CONFIG.copy()
+        if config:
+            self.config.update(config)
     
     def scan_inventory(self, inventory_file="data/sample_inventory.csv"):
         """Main agent cycle: scan inventory and generate recommendations.
@@ -109,35 +135,35 @@ class StockSenseAgent:
             days_left = medicine_obj.days_until_expiry(current_date=current_date)
             
             # Alert: Expiring soon
-            if days_left <= 30 and days_left > 0:
+            if days_left <= self.config["expiry_alert_days"] and days_left > 0:
                 recommendations["expiry_alerts"].append({
                     "medicine": medicine_obj.name,
                     "days_left": days_left,
                     "stock": medicine_obj.stock,
-                    "urgency": "CRITICAL" if days_left <= 7 else "HIGH"
+                    "urgency": "CRITICAL" if days_left <= self.config["expiry_critical_days"] else "HIGH"
                 })
                 print(f"{self.logger_prefix} ALERT: {medicine_obj.name} expires in {days_left} days")
             
             # Recommend discount for near-expiry
-            if 7 <= days_left <= 14:
+            if self.config["discount_min_days"] <= days_left <= self.config["discount_max_days"]:
                 predicted_sales = medicine_obj.predicted_sales_before_expiry(current_date=current_date)
-                if predicted_sales < medicine_obj.stock * 0.5:
-                    discount_pct = 15 if predicted_sales < medicine_obj.stock * 0.3 else 10
+                if predicted_sales < medicine_obj.stock * self.config["discount_stock_ratio"]:
+                    discount_pct = self.config["discount_high_pct"] if predicted_sales < medicine_obj.stock * self.config["discount_high_sales_ratio"] else self.config["discount_low_pct"]
                     recommendations["discount_recommendations"].append({
                         "medicine": medicine_obj.name,
                         "discount_percent": discount_pct,
                         "expected_clear_pct": 80,
-                        "revenue_recovery": int(medicine_obj.stock * 0.1 * 100)
+                        "revenue_recovery": int(medicine_obj.stock * self.config["recovery_factor"] * 100)
                     })
                     print(f"{self.logger_prefix} RECOMMEND: {discount_pct}% discount on {medicine_obj.name}")
             
             # Recommend restock
-            if medicine_obj.stock < 20:
+            if medicine_obj.stock < self.config["restock_threshold"]:
                 recommendations["restock_orders"].append({
                     "medicine": medicine_obj.name,
-                    "recommended_qty": 100,
+                    "recommended_qty": self.config["restock_qty"],
                     "supplier": "Default Supplier",
-                    "estimated_cost": 5000
+                    "estimated_cost": self.config["restock_cost"]
                 })
                 print(f"{self.logger_prefix} ORDER: Restock {medicine_obj.name}")
         
