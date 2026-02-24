@@ -6,11 +6,12 @@ import os
 
 # Mock pandas before importing agent
 sys.modules['pandas'] = MagicMock()
+import pandas as pd
 
 # Add src to python path to allow imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
-from agent import MedicineRecord
+from agent import StockSenseAgent, MedicineRecord
 
 @pytest.fixture
 def mock_datetime_now():
@@ -51,3 +52,43 @@ def test_days_until_expiry_invalid_format(mock_datetime_now):
 
     with pytest.raises(ValueError):
         record.days_until_expiry()
+
+def test_restock_threshold_default(mock_datetime_now):
+    # Setup mock dataframe
+    mock_df = MagicMock()
+    mock_df.columns = ['name', 'stock', 'expiry_date', 'daily_sales']
+    pd.read_csv.return_value = mock_df
+    pd.to_datetime = MagicMock()
+
+    row = MagicMock()
+    row.name = "LowStockMed"
+    row.stock = 19
+    row.expiry_date = datetime(2025, 1, 1)
+    row.daily_sales = 1
+    mock_df.itertuples.return_value = [row]
+
+    agent = StockSenseAgent()
+    recommendations = agent.scan_inventory('dummy.csv')
+
+    assert len(recommendations['restock_orders']) == 1
+    assert recommendations['restock_orders'][0]['medicine'] == "LowStockMed"
+
+def test_restock_threshold_custom(mock_datetime_now):
+    # Setup mock dataframe
+    mock_df = MagicMock()
+    mock_df.columns = ['name', 'stock', 'expiry_date', 'daily_sales']
+    pd.read_csv.return_value = mock_df
+    pd.to_datetime = MagicMock()
+
+    row = MagicMock()
+    row.name = "MedStock25"
+    row.stock = 25
+    row.expiry_date = datetime(2025, 1, 1)
+    row.daily_sales = 1
+    mock_df.itertuples.return_value = [row]
+
+    agent = StockSenseAgent(restock_threshold=30)
+    recommendations = agent.scan_inventory('dummy.csv')
+
+    assert len(recommendations['restock_orders']) == 1
+    assert recommendations['restock_orders'][0]['medicine'] == "MedStock25"
