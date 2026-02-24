@@ -51,3 +51,18 @@ def test_days_until_expiry_invalid_format(mock_datetime_now):
 
     with pytest.raises(ValueError):
         record.days_until_expiry()
+
+def test_days_until_expiry_defaults_to_now(mock_datetime_now):
+    """Test that days_until_expiry uses current date when no argument is provided."""
+    # Create a record with expiry date same as mocked now (2023-01-01)
+    record = MedicineRecord(name="Test Med", stock=10, expiry_date="2023-01-01", daily_sales=1)
+
+
+    # Call without arguments
+    days = record.days_until_expiry()
+
+    # Assert datetime.now() was called
+    mock_datetime_now.now.assert_called()
+
+    # Should be 0 days
+    assert days == 0
