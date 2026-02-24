@@ -6,6 +6,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import os
 import sys
+import tempfile
 
 # Ensure src is in path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
@@ -29,7 +30,8 @@ def benchmark_scan_inventory(sizes=[100, 500, 1000, 5000, 10000]):
     print("=" * 60)
     
     agent = StockSenseAgent()
-    temp_file = 'benchmark_data.csv'
+    with tempfile.NamedTemporaryFile(suffix='.csv', delete=False) as tmp:
+        temp_file = tmp.name
     
     try:
         for size in sizes:
