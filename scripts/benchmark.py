@@ -2,6 +2,7 @@
 """Benchmark script for StockSense Agent performance testing."""
 
 import time
+import tempfile
 import pandas as pd
 from datetime import datetime, timedelta
 import os
@@ -29,7 +30,10 @@ def benchmark_scan_inventory(sizes=[100, 500, 1000, 5000, 10000]):
     print("=" * 60)
     
     agent = StockSenseAgent()
-    temp_file = 'benchmark_data.csv'
+
+    # Use secure temporary file
+    with tempfile.NamedTemporaryFile(suffix='.csv', delete=False) as tmp:
+        temp_file = tmp.name
     
     try:
         for size in sizes:
