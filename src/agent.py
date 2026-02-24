@@ -52,6 +52,36 @@ class StockSenseAgent:
         self.name = "stocksense_agent"
         self.logger_prefix = "[StockSense Agent]"
     
+    def _validate_path(self, path, allowed_directory):
+        """Validate that path is within the allowed directory.
+
+        Args:
+            path: The path to validate
+            allowed_directory: The directory the path must be inside
+
+        Returns:
+            str: The absolute path if valid
+
+        Raises:
+            ValueError: If the path is outside the allowed directory
+        """
+        # Resolve to absolute paths, resolving any symlinks
+        abs_path = os.path.realpath(path)
+        abs_allowed = os.path.realpath(allowed_directory)
+
+        # Use commonpath to ensure the path is within the allowed directory
+        # commonpath handles path separators correctly
+        try:
+            common = os.path.commonpath([abs_path, abs_allowed])
+        except ValueError:
+            # Can happen if paths are on different drives
+            raise ValueError(f"Security Alert: Path '{path}' is on a different drive than '{allowed_directory}'")
+
+        if common != abs_allowed:
+            raise ValueError(f"Security Alert: Path '{path}' traverses outside allowed directory '{allowed_directory}'")
+
+        return abs_path
+
     def scan_inventory(self, inventory_file="data/sample_inventory.csv"):
         """Main agent cycle: scan inventory and generate recommendations.
         
@@ -72,9 +102,15 @@ class StockSenseAgent:
         print(f"{self.logger_prefix} Starting inventory scan...")
         
         try:
+            # Security check: Ensure inventory file is within data directory
+            self._validate_path(inventory_file, "data")
+
             inventory = pd.read_csv(inventory_file)
         except FileNotFoundError:
             print(f"{self.logger_prefix} ERROR: Could not load inventory data from {inventory_file}")
+            return None
+        except ValueError as e:
+            print(f"{self.logger_prefix} ERROR: {str(e)}")
             return None
         
         # OPTIMIZATION 1: Vectorized date parsing
@@ -150,6 +186,17 @@ class StockSenseAgent:
     
     def save_recommendations(self, recommendations, output_file="output/recommendations.json"):
         """Save agent recommendations to file"""
+        # Security check: Ensure output file is within output directory
+        # Ensure output directory exists to serve as valid anchor
+        if not os.path.exists("output"):
+            os.makedirs("output")
+
+        try:
+            self._validate_path(output_file, "output")
+        except ValueError as e:
+            print(f"{self.logger_prefix} ERROR: {str(e)}")
+            return
+
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
         with open(output_file, "w") as f:
             json.dump(recommendations, f, indent=2)
