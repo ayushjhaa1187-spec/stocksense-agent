@@ -52,6 +52,24 @@ class StockSenseAgent:
         self.name = "stocksense_agent"
         self.logger_prefix = "[StockSense Agent]"
     
+    def _validate_path(self, file_path, allowed_dir):
+        """Validate that file_path is within allowed_dir."""
+        # Normalize and resolve absolute paths
+        abs_allowed = os.path.realpath(allowed_dir)
+        abs_file = os.path.realpath(file_path)
+
+        # Security check: Ensure file is inside allowed directory
+        # commonpath returns the longest common sub-path
+        try:
+            common = os.path.commonpath([abs_allowed, abs_file])
+            if common != abs_allowed:
+                raise ValueError(f"Security Alert: Path traversal attempt detected. Access denied to {file_path}")
+        except ValueError:
+             # handle different drives or other errors
+             raise ValueError(f"Security Alert: Path traversal attempt detected. Access denied to {file_path}")
+
+        return abs_file
+
     def scan_inventory(self, inventory_file="data/sample_inventory.csv"):
         """Main agent cycle: scan inventory and generate recommendations.
         
@@ -72,7 +90,13 @@ class StockSenseAgent:
         print(f"{self.logger_prefix} Starting inventory scan...")
         
         try:
+            # SECURITY: Prevent Path Traversal
+            self._validate_path(inventory_file, "data")
+
             inventory = pd.read_csv(inventory_file)
+        except ValueError as e:
+            print(f"{self.logger_prefix} ERROR: {e}")
+            return None
         except FileNotFoundError:
             print(f"{self.logger_prefix} ERROR: Could not load inventory data from {inventory_file}")
             return None
@@ -150,6 +174,9 @@ class StockSenseAgent:
     
     def save_recommendations(self, recommendations, output_file="output/recommendations.json"):
         """Save agent recommendations to file"""
+        # SECURITY: Prevent Path Traversal
+        self._validate_path(output_file, "output")
+
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
         with open(output_file, "w") as f:
             json.dump(recommendations, f, indent=2)
