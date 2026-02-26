@@ -42,16 +42,17 @@ class TestOptimization(unittest.TestCase):
             for i in range(100)
         ]
         
+        # When itertuples() is called, return the list of rows
         mock_df.itertuples.return_value = rows
         
         # Support 'expiry_date' in mock_df.columns check
         mock_df.columns = ['name', 'stock', 'expiry_date', 'daily_sales']
         
-        # Mock read_csv
-        pd.read_csv = MagicMock(return_value=mock_df)
-        
-        # Mock to_datetime (just returns the column)
-        pd.to_datetime = MagicMock()
+        # Mock pandas functions directly on the imported agent module
+        # This is necessary because agent.py imports pandas as pd, and we need to mock THAT instance
+        from agent import pd as agent_pd
+        agent_pd.read_csv.return_value = mock_df
+        agent_pd.to_datetime = MagicMock()
 
         with patch('agent.datetime') as mock_datetime:
             real_datetime = datetime
@@ -60,6 +61,11 @@ class TestOptimization(unittest.TestCase):
             
             # Run scan_inventory
             agent = StockSenseAgent()
+
+            # Bypass path validation for this unit test since we are mocking file reading anyway
+            # We patch the instance method to return the input path
+            agent._validate_path = MagicMock(side_effect=lambda p, b: p)
+
             agent.scan_inventory('dummy.csv')
             
             # VERIFICATION 1: strptime should NOT be called inside the loop
@@ -79,8 +85,8 @@ class TestOptimization(unittest.TestCase):
                            "itertuples should be called for efficient iteration")
             
             # VERIFICATION 4: to_datetime SHOULD be called
-            print(f"✓ Calls to to_datetime: {pd.to_datetime.call_count}")
-            self.assertEqual(pd.to_datetime.call_count, 1,
+            print(f"✓ Calls to to_datetime: {agent_pd.to_datetime.call_count}")
+            self.assertEqual(agent_pd.to_datetime.call_count, 1,
                            "pd.to_datetime should be called for vectorization")
             
             # VERIFICATION 5: datetime.now() should be called a small number of times

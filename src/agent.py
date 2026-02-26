@@ -52,6 +52,27 @@ class StockSenseAgent:
         self.name = "stocksense_agent"
         self.logger_prefix = "[StockSense Agent]"
     
+    def _validate_path(self, path, base_dir="."):
+        """Validate that path is safe and within allowed directory."""
+        # Convert both to absolute paths
+        abs_base = os.path.abspath(base_dir)
+        abs_path = os.path.abspath(path)
+
+        # Check if path is within base_dir using os.path.commonpath for robustness
+        # commonpath returns the longest common sub-path
+        # If abs_path is inside abs_base, commonpath([abs_base, abs_path]) should be abs_base
+
+        try:
+             # On Windows, paths on different drives raise ValueError in commonpath
+            common = os.path.commonpath([abs_base, abs_path])
+        except ValueError:
+            common = None
+
+        if common != abs_base:
+            raise ValueError(f"Security Error: Path '{path}' traverses outside allowed directory '{base_dir}'")
+
+        return abs_path
+
     def scan_inventory(self, inventory_file="data/sample_inventory.csv"):
         """Main agent cycle: scan inventory and generate recommendations.
         
@@ -72,6 +93,17 @@ class StockSenseAgent:
         print(f"{self.logger_prefix} Starting inventory scan...")
         
         try:
+            # Security check: Ensure inventory file is within data/ or is explicitly safe
+            # We default to allowing access to data/ directory
+            try:
+                self._validate_path(inventory_file, "data")
+            except ValueError as e:
+                # Also allow reading from current directory for local testing if needed,
+                # but better to restrict. For now let's just log and re-raise if strictly needed.
+                # Or simply fail.
+                print(f"{self.logger_prefix} {e}")
+                return None
+
             inventory = pd.read_csv(inventory_file)
         except FileNotFoundError:
             print(f"{self.logger_prefix} ERROR: Could not load inventory data from {inventory_file}")
@@ -150,8 +182,27 @@ class StockSenseAgent:
     
     def save_recommendations(self, recommendations, output_file="output/recommendations.json"):
         """Save agent recommendations to file"""
-        os.makedirs(os.path.dirname(output_file), exist_ok=True)
-        with open(output_file, "w") as f:
+
+        # Security check: Ensure output file is within output/ directory
+        # If output_file doesn't start with output/, enforce it
+        # But wait, output_file argument is the full path.
+
+        # We want to ensure that whatever file is written, it ends up in the 'output' directory.
+        # So we validate against 'output' folder.
+
+        # Ensure the output directory exists
+        if not os.path.exists("output"):
+            os.makedirs("output")
+
+        try:
+            # We enforce that files must be saved within the 'output' directory of the project
+            safe_path = self._validate_path(output_file, "output")
+        except ValueError as e:
+            print(f"{self.logger_prefix} {e}")
+            raise # Re-raise to alert caller
+
+        os.makedirs(os.path.dirname(safe_path), exist_ok=True)
+        with open(safe_path, "w") as f:
             json.dump(recommendations, f, indent=2)
         print(f"{self.logger_prefix} Recommendations saved to {output_file}")
 
