@@ -5,10 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StockSense Agent - Pharmacy Inventory AI</title>
     <style>
+        @media (prefers-reduced-motion: no-preference) {
+            html {
+                scroll-behavior: smooth;
+            }
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }
+
+        .skip-link {
+            position: absolute;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #764ba2;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 0 0 8px 8px;
+            z-index: 1000;
+            font-weight: bold;
+            text-decoration: none;
+            transition: top 0.3s ease;
+        }
+
+        .skip-link:focus {
+            top: 0;
+            outline: 2px solid white;
+            outline-offset: -2px;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         body {
@@ -275,6 +308,7 @@
     </style>
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <header>
         <div class="header-content">
             <div class="logo">StockSense Agent</div>
@@ -286,8 +320,9 @@
         </div>
     </header>
 
-    <div class="hero">
-        <div class="hero-content">
+    <main id="main-content" tabindex="-1">
+        <div class="hero">
+            <div class="hero-content">
             <h1>StockSense Agent</h1>
             <p>Autonomous AI Agent for Pharmacy Inventory Management</p>
             <p style="font-size: 18px; opacity: 0.9; margin-bottom: 40px;">Leveraging Fetch.ai Agents to Optimize Pharmaceutical Expiry Management & Stock Control</p>
@@ -367,6 +402,7 @@
             </div>
         </div>
     </section>
+    </main>
 
     <footer>
         <p>&copy; 2024 StockSense Agent. Built with ❤️ for pharmacy optimization.</p>
