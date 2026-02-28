@@ -1,0 +1,4 @@
+## 2026-02-28 - Unrestricted File Paths Allowing Directory Traversal
+**Vulnerability:** The `StockSenseAgent` class accepted unvalidated, user-controllable file paths in `scan_inventory` and `save_recommendations`, allowing directory traversal to read arbitrary files (e.g., `../etc/passwd`) or write arbitrary files on the system.
+**Learning:** File paths were directly passed to `pd.read_csv` and `open()` without checking if the resolved absolute path still resides within the intended sandboxed directory (like `data/` or `output/`). Path manipulation characters like `..` were not sanitized.
+**Prevention:** Always resolve the absolute path using `os.path.realpath` and enforce that it remains within the intended base directory using `os.path.commonpath`. Create a strict `_validate_path` method and run all user-provided paths through it before performing any I/O operations.
