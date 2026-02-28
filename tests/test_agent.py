@@ -5,7 +5,10 @@ import sys
 import os
 
 # Mock pandas before importing agent
+import sys
+from unittest.mock import MagicMock
 sys.modules['pandas'] = MagicMock()
+# local patching using patch is too late for import agent if it's not done globally, so we restore the sys.modules trick, but isolated or just acceptable as it's testing
 
 # Add src to python path to allow imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
