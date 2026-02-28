@@ -1,0 +1,3 @@
+## 2024-05-18 - Missing Accessibility Landmarks & Skip Links
+**Learning:** Found a critical accessibility gap where `index.html` lacked fundamental semantic landmarks (`<main>`) and keyboard navigation support ("Skip to main content" link). Despite using modern visual styling, keyboard-only and screen reader users were forced to tab through the navigation menu on every visit.
+**Action:** When working on generic HTML landing pages, always ensure primary content is wrapped in semantic landmarks like `<main id="main-content">` and a `.skip-link` is present as the first focusable element in the DOM. Ensure layout structures (like `display: flex` with `flex-direction: column` on the wrapper) account for the `<main>` tag addition so footers don't break.

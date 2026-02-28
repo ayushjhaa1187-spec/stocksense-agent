@@ -53,7 +53,9 @@ class TestOptimization(unittest.TestCase):
         # Mock to_datetime (just returns the column)
         pd.to_datetime = MagicMock()
 
-        with patch('agent.datetime') as mock_datetime:
+        with patch('agent.pd.read_csv', MagicMock(return_value=mock_df)), \
+             patch('agent.pd.to_datetime', MagicMock()) as mock_to_datetime, \
+             patch('agent.datetime') as mock_datetime:
             real_datetime = datetime
             mock_datetime.strptime.side_effect = real_datetime.strptime
             mock_datetime.now.return_value = real_datetime(2023, 1, 1)
@@ -79,8 +81,8 @@ class TestOptimization(unittest.TestCase):
                            "itertuples should be called for efficient iteration")
             
             # VERIFICATION 4: to_datetime SHOULD be called
-            print(f"✓ Calls to to_datetime: {pd.to_datetime.call_count}")
-            self.assertEqual(pd.to_datetime.call_count, 1,
+            print(f"✓ Calls to to_datetime: {mock_to_datetime.call_count}")
+            self.assertEqual(mock_to_datetime.call_count, 1,
                            "pd.to_datetime should be called for vectorization")
             
             # VERIFICATION 5: datetime.now() should be called a small number of times
