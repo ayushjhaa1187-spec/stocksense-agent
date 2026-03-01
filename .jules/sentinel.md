@@ -1,0 +1,4 @@
+## 2025-03-01 - Path Traversal Vulnerability in JSON File Writing
+**Vulnerability:** Path Traversal in `save_recommendations` and `scan_inventory` methods due to lack of path validation. An attacker could provide a malicious file path (e.g. `../../etc/passwd`) allowing files to be written or read outside of the intended directory (`output/` or `data/`).
+**Learning:** Never pass unvalidated file paths directly into file operations like `os.makedirs` or `open()`. User-provided paths should always be sanitized and restricted to expected directories.
+**Prevention:** Implement path validation helpers using `os.path.realpath` and `os.path.commonpath` to ensure absolute paths resolve inside allowed directories. Catch exceptions like `ValueError` and fail securely by logging errors and returning None.
