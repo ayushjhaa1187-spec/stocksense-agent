@@ -23,8 +23,10 @@ def generate_test_data(n_items=1000):
     }
     return pd.DataFrame(data)
 
-def benchmark_scan_inventory(sizes=[100, 500, 1000, 5000, 10000]):
+def benchmark_scan_inventory(sizes=None):
     """Run benchmark for different inventory sizes."""
+    if sizes is None:
+        sizes = [100, 500, 1000, 5000, 10000]
     print("StockSense Agent - Inventory Scanning Benchmark")
     print("=" * 60)
     
