@@ -116,7 +116,6 @@ class StockSenseAgent:
                     "stock": medicine_obj.stock,
                     "urgency": "CRITICAL" if days_left <= 7 else "HIGH"
                 })
-                print(f"{self.logger_prefix} ALERT: {medicine_obj.name} expires in {days_left} days")
             
             # Recommend discount for near-expiry
             if 7 <= days_left <= 14:
@@ -129,7 +128,6 @@ class StockSenseAgent:
                         "expected_clear_pct": 80,
                         "revenue_recovery": int(medicine_obj.stock * 0.1 * 100)
                     })
-                    print(f"{self.logger_prefix} RECOMMEND: {discount_pct}% discount on {medicine_obj.name}")
             
             # Recommend restock
             if medicine_obj.stock < 20:
@@ -139,7 +137,6 @@ class StockSenseAgent:
                     "supplier": "Default Supplier",
                     "estimated_cost": 5000
                 })
-                print(f"{self.logger_prefix} ORDER: Restock {medicine_obj.name}")
         
         print(f"{self.logger_prefix} Scan complete!")
         print(f"{self.logger_prefix} - Expiry alerts: {len(recommendations['expiry_alerts'])}")
