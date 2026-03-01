@@ -10,7 +10,8 @@ sys.modules['pandas'] = MagicMock()
 # Add src to python path to allow imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
-from agent import MedicineRecord
+from agent import MedicineRecord, StockSenseAgent
+import agent
 
 @pytest.fixture
 def mock_datetime_now():
@@ -51,3 +52,14 @@ def test_days_until_expiry_invalid_format(mock_datetime_now):
 
     with pytest.raises(ValueError):
         record.days_until_expiry()
+
+def test_scan_inventory_file_not_found(capsys):
+    agent_instance = StockSenseAgent()
+
+    with patch.object(agent.pd, 'read_csv', side_effect=FileNotFoundError):
+        result = agent_instance.scan_inventory("data/non_existent.csv")
+
+    assert result is None
+
+    captured = capsys.readouterr()
+    assert "ERROR: Could not load inventory data from data/non_existent.csv" in captured.out
