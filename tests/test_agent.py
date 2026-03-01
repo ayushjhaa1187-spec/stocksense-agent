@@ -51,3 +51,31 @@ def test_days_until_expiry_invalid_format(mock_datetime_now):
 
     with pytest.raises(ValueError):
         record.days_until_expiry()
+
+from agent import StockSenseAgent
+import json
+
+def test_save_recommendations_success(tmp_path):
+    # Setup test data
+    agent = StockSenseAgent()
+    recommendations = {
+        "timestamp": "2023-01-01T00:00:00",
+        "expiry_alerts": [{"medicine": "MedA", "days_left": 5}],
+        "discount_recommendations": [],
+        "restock_orders": []
+    }
+
+    # Use tmp_path to create a temporary directory and file path
+    output_dir = tmp_path / "output"
+    output_file = output_dir / "recommendations.json"
+
+    # Run the function
+    agent.save_recommendations(recommendations, str(output_file))
+
+    # Verify the file was created and contains the correct data
+    assert output_file.exists()
+
+    with open(output_file, "r") as f:
+        saved_data = json.load(f)
+
+    assert saved_data == recommendations
