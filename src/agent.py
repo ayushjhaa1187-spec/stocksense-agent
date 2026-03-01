@@ -52,6 +52,40 @@ class StockSenseAgent:
         self.name = "stocksense_agent"
         self.logger_prefix = "[StockSense Agent]"
     
+
+    def _check_expiry(self, medicine_obj, days_left, recommendations):
+        if days_left <= 30 and days_left > 0:
+            recommendations["expiry_alerts"].append({
+                "medicine": medicine_obj.name,
+                "days_left": days_left,
+                "stock": medicine_obj.stock,
+                "urgency": "CRITICAL" if days_left <= 7 else "HIGH"
+            })
+            print(f"{self.logger_prefix} ALERT: {medicine_obj.name} expires in {days_left} days")
+
+    def _check_discount(self, medicine_obj, days_left, current_date, recommendations):
+        if 7 <= days_left <= 14:
+            predicted_sales = medicine_obj.predicted_sales_before_expiry(current_date=current_date)
+            if predicted_sales < medicine_obj.stock * 0.5:
+                discount_pct = 15 if predicted_sales < medicine_obj.stock * 0.3 else 10
+                recommendations["discount_recommendations"].append({
+                    "medicine": medicine_obj.name,
+                    "discount_percent": discount_pct,
+                    "expected_clear_pct": 80,
+                    "revenue_recovery": int(medicine_obj.stock * 0.1 * 100)
+                })
+                print(f"{self.logger_prefix} RECOMMEND: {discount_pct}% discount on {medicine_obj.name}")
+
+    def _check_restock(self, medicine_obj, recommendations):
+        if medicine_obj.stock < 20:
+            recommendations["restock_orders"].append({
+                "medicine": medicine_obj.name,
+                "recommended_qty": 100,
+                "supplier": "Default Supplier",
+                "estimated_cost": 5000
+            })
+            print(f"{self.logger_prefix} ORDER: Restock {medicine_obj.name}")
+
     def scan_inventory(self, inventory_file="data/sample_inventory.csv"):
         """Main agent cycle: scan inventory and generate recommendations.
         
@@ -108,38 +142,9 @@ class StockSenseAgent:
             # Pass pre-calculated current_date to avoid repeated parsing
             days_left = medicine_obj.days_until_expiry(current_date=current_date)
             
-            # Alert: Expiring soon
-            if days_left <= 30 and days_left > 0:
-                recommendations["expiry_alerts"].append({
-                    "medicine": medicine_obj.name,
-                    "days_left": days_left,
-                    "stock": medicine_obj.stock,
-                    "urgency": "CRITICAL" if days_left <= 7 else "HIGH"
-                })
-                print(f"{self.logger_prefix} ALERT: {medicine_obj.name} expires in {days_left} days")
-            
-            # Recommend discount for near-expiry
-            if 7 <= days_left <= 14:
-                predicted_sales = medicine_obj.predicted_sales_before_expiry(current_date=current_date)
-                if predicted_sales < medicine_obj.stock * 0.5:
-                    discount_pct = 15 if predicted_sales < medicine_obj.stock * 0.3 else 10
-                    recommendations["discount_recommendations"].append({
-                        "medicine": medicine_obj.name,
-                        "discount_percent": discount_pct,
-                        "expected_clear_pct": 80,
-                        "revenue_recovery": int(medicine_obj.stock * 0.1 * 100)
-                    })
-                    print(f"{self.logger_prefix} RECOMMEND: {discount_pct}% discount on {medicine_obj.name}")
-            
-            # Recommend restock
-            if medicine_obj.stock < 20:
-                recommendations["restock_orders"].append({
-                    "medicine": medicine_obj.name,
-                    "recommended_qty": 100,
-                    "supplier": "Default Supplier",
-                    "estimated_cost": 5000
-                })
-                print(f"{self.logger_prefix} ORDER: Restock {medicine_obj.name}")
+            self._check_expiry(medicine_obj, days_left, recommendations)
+            self._check_discount(medicine_obj, days_left, current_date, recommendations)
+            self._check_restock(medicine_obj, recommendations)
         
         print(f"{self.logger_prefix} Scan complete!")
         print(f"{self.logger_prefix} - Expiry alerts: {len(recommendations['expiry_alerts'])}")
