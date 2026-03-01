@@ -51,6 +51,19 @@ class StockSenseAgent:
     def __init__(self):
         self.name = "stocksense_agent"
         self.logger_prefix = "[StockSense Agent]"
+
+    def _validate_path(self, filepath, allowed_dir):
+        """Validate that the given filepath resides within the allowed directory."""
+        abs_filepath = os.path.realpath(filepath)
+        abs_allowed_dir = os.path.realpath(allowed_dir)
+        try:
+            if os.path.commonpath([abs_filepath, abs_allowed_dir]) != abs_allowed_dir:
+                raise ValueError(f"Path traversal detected or path outside allowed directory: {filepath}")
+        except ValueError as e:
+            # commonpath raises ValueError if paths are on different drives
+            raise ValueError(f"Invalid path: {filepath}") from e
+        return abs_filepath
+
     
     def scan_inventory(self, inventory_file="data/sample_inventory.csv"):
         """Main agent cycle: scan inventory and generate recommendations.
@@ -71,6 +84,12 @@ class StockSenseAgent:
         
         print(f"{self.logger_prefix} Starting inventory scan...")
         
+        try:
+            self._validate_path(inventory_file, "data")
+        except ValueError as e:
+            print(f"{self.logger_prefix} ERROR: {e}")
+            return None
+
         try:
             inventory = pd.read_csv(inventory_file)
         except FileNotFoundError:
@@ -150,6 +169,12 @@ class StockSenseAgent:
     
     def save_recommendations(self, recommendations, output_file="output/recommendations.json"):
         """Save agent recommendations to file"""
+        try:
+            self._validate_path(output_file, "output")
+        except ValueError as e:
+            print(f"{self.logger_prefix} ERROR: {e}")
+            return None
+
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
         with open(output_file, "w") as f:
             json.dump(recommendations, f, indent=2)
