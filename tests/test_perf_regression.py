@@ -20,6 +20,7 @@ import pandas as pd
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
+import agent as agent_mod
 from agent import StockSenseAgent
 
 class TestOptimization(unittest.TestCase):
@@ -48,10 +49,10 @@ class TestOptimization(unittest.TestCase):
         mock_df.columns = ['name', 'stock', 'expiry_date', 'daily_sales']
         
         # Mock read_csv
-        pd.read_csv = MagicMock(return_value=mock_df)
+        agent_mod.pd.read_csv = MagicMock(return_value=mock_df)
         
         # Mock to_datetime (just returns the column)
-        pd.to_datetime = MagicMock()
+        agent_mod.pd.to_datetime = MagicMock()
 
         with patch('agent.datetime') as mock_datetime:
             real_datetime = datetime
@@ -79,8 +80,8 @@ class TestOptimization(unittest.TestCase):
                            "itertuples should be called for efficient iteration")
             
             # VERIFICATION 4: to_datetime SHOULD be called
-            print(f"✓ Calls to to_datetime: {pd.to_datetime.call_count}")
-            self.assertEqual(pd.to_datetime.call_count, 1,
+            print(f"✓ Calls to to_datetime: {agent_mod.pd.to_datetime.call_count}")
+            self.assertEqual(agent_mod.pd.to_datetime.call_count, 1,
                            "pd.to_datetime should be called for vectorization")
             
             # VERIFICATION 5: datetime.now() should be called a small number of times
