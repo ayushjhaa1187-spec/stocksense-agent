@@ -98,48 +98,42 @@ class StockSenseAgent:
         # itertuples yields named tuples (fast), iterrows creates Series (slow)
         # This provides 5-10x speedup for large datasets
         for medicine in inventory.itertuples():
-            medicine_obj = MedicineRecord(
-                name=medicine.name,
-                stock=medicine.stock,
-                expiry_date=medicine.expiry_date,  # Already parsed datetime
-                daily_sales=medicine.daily_sales
-            )
-            
-            # Pass pre-calculated current_date to avoid repeated parsing
-            days_left = medicine_obj.days_until_expiry(current_date=current_date)
+            # Calculate days left directly using tuple properties
+            # Note: medicine.expiry_date is a pandas Timestamp, subtracting a datetime gives a Timedelta
+            days_left = (medicine.expiry_date - current_date).days
             
             # Alert: Expiring soon
             if days_left <= 30 and days_left > 0:
                 recommendations["expiry_alerts"].append({
-                    "medicine": medicine_obj.name,
+                    "medicine": medicine.name,
                     "days_left": days_left,
-                    "stock": medicine_obj.stock,
+                    "stock": medicine.stock,
                     "urgency": "CRITICAL" if days_left <= 7 else "HIGH"
                 })
-                print(f"{self.logger_prefix} ALERT: {medicine_obj.name} expires in {days_left} days")
+                print(f"{self.logger_prefix} ALERT: {medicine.name} expires in {days_left} days")
             
             # Recommend discount for near-expiry
             if 7 <= days_left <= 14:
-                predicted_sales = medicine_obj.predicted_sales_before_expiry(current_date=current_date)
-                if predicted_sales < medicine_obj.stock * 0.5:
-                    discount_pct = 15 if predicted_sales < medicine_obj.stock * 0.3 else 10
+                predicted_sales = medicine.daily_sales * max(0, days_left)
+                if predicted_sales < medicine.stock * 0.5:
+                    discount_pct = 15 if predicted_sales < medicine.stock * 0.3 else 10
                     recommendations["discount_recommendations"].append({
-                        "medicine": medicine_obj.name,
+                        "medicine": medicine.name,
                         "discount_percent": discount_pct,
                         "expected_clear_pct": 80,
-                        "revenue_recovery": int(medicine_obj.stock * 0.1 * 100)
+                        "revenue_recovery": int(medicine.stock * 0.1 * 100)
                     })
-                    print(f"{self.logger_prefix} RECOMMEND: {discount_pct}% discount on {medicine_obj.name}")
+                    print(f"{self.logger_prefix} RECOMMEND: {discount_pct}% discount on {medicine.name}")
             
             # Recommend restock
-            if medicine_obj.stock < 20:
+            if medicine.stock < 20:
                 recommendations["restock_orders"].append({
-                    "medicine": medicine_obj.name,
+                    "medicine": medicine.name,
                     "recommended_qty": 100,
                     "supplier": "Default Supplier",
                     "estimated_cost": 5000
                 })
-                print(f"{self.logger_prefix} ORDER: Restock {medicine_obj.name}")
+                print(f"{self.logger_prefix} ORDER: Restock {medicine.name}")
         
         print(f"{self.logger_prefix} Scan complete!")
         print(f"{self.logger_prefix} - Expiry alerts: {len(recommendations['expiry_alerts'])}")
