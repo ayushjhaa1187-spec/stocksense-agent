@@ -11,6 +11,16 @@
             box-sizing: border-box;
         }
 
+        :focus-visible {
+            outline: 3px solid currentColor;
+            outline-offset: 3px;
+            border-radius: 4px;
+        }
+
+        .btn:focus-visible {
+            border-radius: 8px;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
