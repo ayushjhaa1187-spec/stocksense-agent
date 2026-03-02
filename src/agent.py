@@ -52,6 +52,18 @@ class StockSenseAgent:
         self.name = "stocksense_agent"
         self.logger_prefix = "[StockSense Agent]"
     
+    def _validate_path(self, file_path, allowed_dir):
+        """Validate that a file path is safely within the allowed directory."""
+        base_dir = os.path.realpath(allowed_dir)
+        target_path = os.path.realpath(file_path)
+        try:
+            common = os.path.commonpath([base_dir, target_path])
+            if common != base_dir:
+                raise ValueError(f"Path traversal detected! Path must be within {allowed_dir}")
+        except ValueError:
+            raise ValueError(f"Path traversal detected! Path must be within {allowed_dir}")
+        return target_path
+
     def scan_inventory(self, inventory_file="data/sample_inventory.csv"):
         """Main agent cycle: scan inventory and generate recommendations.
         
@@ -72,7 +84,12 @@ class StockSenseAgent:
         print(f"{self.logger_prefix} Starting inventory scan...")
         
         try:
-            inventory = pd.read_csv(inventory_file)
+            # Prevent path traversal vulnerabilities
+            safe_inventory_file = self._validate_path(inventory_file, "data")
+            inventory = pd.read_csv(safe_inventory_file)
+        except ValueError as e:
+            print(f"{self.logger_prefix} SECURITY ERROR: {e}")
+            return None
         except FileNotFoundError:
             print(f"{self.logger_prefix} ERROR: Could not load inventory data from {inventory_file}")
             return None
@@ -150,10 +167,17 @@ class StockSenseAgent:
     
     def save_recommendations(self, recommendations, output_file="output/recommendations.json"):
         """Save agent recommendations to file"""
-        os.makedirs(os.path.dirname(output_file), exist_ok=True)
-        with open(output_file, "w") as f:
+        try:
+            # Prevent path traversal vulnerabilities
+            safe_output_file = self._validate_path(output_file, "output")
+        except ValueError as e:
+            print(f"{self.logger_prefix} SECURITY ERROR: {e}")
+            return None
+
+        os.makedirs(os.path.dirname(safe_output_file), exist_ok=True)
+        with open(safe_output_file, "w") as f:
             json.dump(recommendations, f, indent=2)
-        print(f"{self.logger_prefix} Recommendations saved to {output_file}")
+        print(f"{self.logger_prefix} Recommendations saved to {safe_output_file}")
 
 if __name__ == "__main__":
     agent = StockSenseAgent()
