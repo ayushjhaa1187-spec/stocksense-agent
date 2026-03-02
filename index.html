@@ -11,6 +11,41 @@
             box-sizing: border-box;
         }
 
+        @media (prefers-reduced-motion: no-preference) {
+            html {
+                scroll-behavior: smooth;
+            }
+        }
+
+        :focus-visible {
+            outline: 3px solid currentColor;
+            outline-offset: 2px;
+        }
+
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            z-index: 1000;
+            text-decoration: none;
+            transition: top 0.3s;
+            font-weight: bold;
+            border-bottom-right-radius: 8px;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -275,6 +310,7 @@
     </style>
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <header>
         <div class="header-content">
             <div class="logo">StockSense Agent</div>
@@ -286,9 +322,10 @@
         </div>
     </header>
 
-    <div class="hero">
-        <div class="hero-content">
-            <h1>StockSense Agent</h1>
+    <main id="main-content">
+        <div class="hero">
+            <div class="hero-content">
+                <h1>StockSense Agent</h1>
             <p>Autonomous AI Agent for Pharmacy Inventory Management</p>
             <p style="font-size: 18px; opacity: 0.9; margin-bottom: 40px;">Leveraging Fetch.ai Agents to Optimize Pharmaceutical Expiry Management & Stock Control</p>
             <div class="cta-buttons">
@@ -298,7 +335,7 @@
         </div>
     </div>
 
-    <section class="features" id="features">
+        <section class="features" id="features">
         <div class="features-container">
             <h2>Key Features</h2>
             <div class="feature-grid">
@@ -336,7 +373,7 @@
         </div>
     </section>
 
-    <section class="tech-stack" id="tech">
+        <section class="tech-stack" id="tech">
         <div class="tech-stack-container">
             <h2>Built With</h2>
             <div class="tech-grid">
@@ -366,7 +403,8 @@
                 </div>
             </div>
         </div>
-    </section>
+        </section>
+    </main>
 
     <footer>
         <p>&copy; 2024 StockSense Agent. Built with ❤️ for pharmacy optimization.</p>

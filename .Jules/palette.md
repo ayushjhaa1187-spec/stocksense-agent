@@ -1,0 +1,3 @@
+## 2024-03-02 - Adaptive Focus & Smooth Scrolling
+**Learning:** `currentColor` for focus outlines (e.g. `outline: 3px solid currentColor`) effectively adapts to varying background colors automatically, avoiding complex overrides. Also, it's essential to respect `prefers-reduced-motion: no-preference` when setting `scroll-behavior: smooth` so users with motion sensitivities are not adversely affected.
+**Action:** Always wrap smooth scrolling directives in `@media (prefers-reduced-motion: no-preference)` and prefer `currentColor` for `:focus-visible` to ensure both robust keyboard accessibility and inclusive motion design.
