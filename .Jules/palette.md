@@ -1,0 +1,3 @@
+## 2024-05-14 - Semantic Main Element & Focus States
+**Learning:** Found that `index.html` lacked a semantic `<main>` wrapper and clear focus states, breaking expected accessibility structures and keyboard navigation. Using `currentColor` for `:focus-visible` outline is a robust pattern for custom themes with gradient backgrounds, bypassing the need for complex CSS variable logic.
+**Action:** Wrapped core content (`.hero`, `.features`, `.tech-stack`) in `<main id="main-content">`, added a skip link, and implemented global `:focus-visible` styling using `currentColor` to dynamically adapt to varying background colors.
