@@ -1,0 +1,4 @@
+## 2024-03-04 - Fix Path Traversal Vulnerability in File Operations
+**Vulnerability:** The `StockSenseAgent.scan_inventory` and `save_recommendations` methods accepted user-controlled file paths (`inventory_file` and `output_file`) without verifying that they stayed within the intended isolated directories (`data/` and `output/`). This permitted an attacker to potentially read sensitive files or overwrite critical files using `../` directory traversal techniques.
+**Learning:** File paths must always be sanitized and validated before use. The lack of validation allowed an attacker to arbitrarily interact with the file system wherever the agent process had permissions.
+**Prevention:** Always validate user-provided file paths against an allowed base directory using `os.path.realpath` and `os.path.commonpath`. Handle validation exceptions securely to prevent leaking sensitive filesystem structures or tracebacks.
