@@ -52,6 +52,17 @@ class StockSenseAgent:
         self.name = "stocksense_agent"
         self.logger_prefix = "[StockSense Agent]"
     
+    def _validate_path(self, path, base_dir):
+        """Validates that the path resolves strictly within the base_dir to prevent path traversal."""
+        # Get absolute paths
+        base_path = os.path.realpath(base_dir)
+        target_path = os.path.realpath(path)
+
+        # Check if the target path starts with the base path
+        if os.path.commonpath([base_path, target_path]) != base_path:
+            raise ValueError(f"Path traversal detected or invalid path: {path}")
+        return path
+
     def scan_inventory(self, inventory_file="data/sample_inventory.csv"):
         """Main agent cycle: scan inventory and generate recommendations.
         
@@ -72,7 +83,11 @@ class StockSenseAgent:
         print(f"{self.logger_prefix} Starting inventory scan...")
         
         try:
+            self._validate_path(inventory_file, 'data')
             inventory = pd.read_csv(inventory_file)
+        except ValueError as e:
+            print(f"{self.logger_prefix} ERROR: Invalid path - {e}")
+            return None
         except FileNotFoundError:
             print(f"{self.logger_prefix} ERROR: Could not load inventory data from {inventory_file}")
             return None
@@ -150,6 +165,12 @@ class StockSenseAgent:
     
     def save_recommendations(self, recommendations, output_file="output/recommendations.json"):
         """Save agent recommendations to file"""
+        try:
+            self._validate_path(output_file, 'output')
+        except ValueError as e:
+            print(f"{self.logger_prefix} ERROR: Invalid path - {e}")
+            return None
+
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
         with open(output_file, "w") as f:
             json.dump(recommendations, f, indent=2)
