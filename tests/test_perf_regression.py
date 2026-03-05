@@ -53,6 +53,10 @@ class TestOptimization(unittest.TestCase):
         # Mock to_datetime (just returns the column)
         pd.to_datetime = MagicMock()
 
+        import agent
+        agent.pd.read_csv = pd.read_csv
+        agent.pd.to_datetime = pd.to_datetime
+
         with patch('agent.datetime') as mock_datetime:
             real_datetime = datetime
             mock_datetime.strptime.side_effect = real_datetime.strptime
@@ -60,7 +64,10 @@ class TestOptimization(unittest.TestCase):
             
             # Run scan_inventory
             agent = StockSenseAgent()
-            agent.scan_inventory('dummy.csv')
+            # Mock _validate_path to prevent it from throwing a ValueError if "data" directory
+            # isn't present or resolves differently in the test environment
+            agent._validate_path = MagicMock(return_value='data/dummy.csv')
+            agent.scan_inventory('data/dummy.csv')
             
             # VERIFICATION 1: strptime should NOT be called inside the loop
             # (because we pass datetime objects directly)
