@@ -272,20 +272,59 @@
                 font-size: 28px;
             }
         }
+
+        /* Accessibility Enhancements */
+        @media (prefers-reduced-motion: no-preference) {
+            html {
+                scroll-behavior: smooth;
+            }
+        }
+
+        :focus-visible {
+            outline: 3px solid currentColor;
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
+
+        .skip-link {
+            position: absolute;
+            top: -100px;
+            left: 20px;
+            background: #1a1a1a;
+            color: white;
+            padding: 10px 20px;
+            z-index: 1000;
+            border-radius: 0 0 8px 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: top 0.2s;
+        }
+
+        .skip-link:focus-visible {
+            top: 0;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
     </style>
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <header>
         <div class="header-content">
             <div class="logo">StockSense Agent</div>
             <nav>
                 <a href="#features">Features</a>
                 <a href="#tech">Technology</a>
-                <a href="https://github.com/ayushjhaa1187-spec/stocksense-agent" target="_blank">GitHub</a>
+                <a href="https://github.com/ayushjhaa1187-spec/stocksense-agent" target="_blank" rel="noopener noreferrer">GitHub</a>
             </nav>
         </div>
     </header>
 
+        <main id="main-content">
     <div class="hero">
         <div class="hero-content">
             <h1>StockSense Agent</h1>
@@ -303,32 +342,32 @@
             <h2>Key Features</h2>
             <div class="feature-grid">
                 <div class="feature-card">
-                    <div class="feature-icon">📦</div>
+                    <div class="feature-icon" aria-hidden="true">📦</div>
                     <h3>Smart Inventory Tracking</h3>
                     <p>Real-time monitoring of pharmaceutical stock levels with automated alerts for low inventory situations.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">⏰</div>
+                    <div class="feature-icon" aria-hidden="true">⏰</div>
                     <h3>Expiry Management</h3>
                     <p>Intelligent expiry date tracking and prediction system to minimize wastage and ensure patient safety.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">🤖</div>
+                    <div class="feature-icon" aria-hidden="true">🤖</div>
                     <h3>AI-Powered Agent</h3>
                     <p>Autonomous Fetch.ai agent that learns and optimizes inventory decisions over time.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">💡</div>
+                    <div class="feature-icon" aria-hidden="true">💡</div>
                     <h3>Predictive Analytics</h3>
                     <p>Machine learning models forecast demand patterns and optimize stock allocation.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">📊</div>
+                    <div class="feature-icon" aria-hidden="true">📊</div>
                     <h3>Detailed Analytics</h3>
                     <p>Comprehensive dashboards providing insights into inventory trends and optimization metrics.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">🔐</div>
+                    <div class="feature-icon" aria-hidden="true">🔐</div>
                     <h3>Secure & Scalable</h3>
                     <p>Built with security best practices and designed to scale across multiple pharmacy locations.</p>
                 </div>
@@ -368,11 +407,13 @@
         </div>
     </section>
 
+        </main>
+
     <footer>
         <p>&copy; 2024 StockSense Agent. Built with ❤️ for pharmacy optimization.</p>
         <p>
-            <a href="https://github.com/ayushjhaa1187-spec/stocksense-agent" target="_blank">GitHub Repository</a>
-            <a href="https://fetch.ai" target="_blank">Fetch.ai</a>
+            <a href="https://github.com/ayushjhaa1187-spec/stocksense-agent" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+            <a href="https://fetch.ai" target="_blank" rel="noopener noreferrer">Fetch.ai</a>
         </p>
     </footer>
 </body>
