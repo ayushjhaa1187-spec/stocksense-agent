@@ -51,6 +51,14 @@ class StockSenseAgent:
     def __init__(self):
         self.name = "stocksense_agent"
         self.logger_prefix = "[StockSense Agent]"
+
+    def _validate_path(self, filepath, allowed_dir):
+        """Validates that a filepath resides strictly within the allowed directory."""
+        allowed_path = os.path.realpath(allowed_dir)
+        target_path = os.path.realpath(filepath)
+        if os.path.commonpath([allowed_path, target_path]) != allowed_path:
+            raise ValueError(f"Path traversal detected or invalid directory: {filepath}")
+        return target_path
     
     def scan_inventory(self, inventory_file="data/sample_inventory.csv"):
         """Main agent cycle: scan inventory and generate recommendations.
@@ -72,9 +80,10 @@ class StockSenseAgent:
         print(f"{self.logger_prefix} Starting inventory scan...")
         
         try:
-            inventory = pd.read_csv(inventory_file)
-        except FileNotFoundError:
-            print(f"{self.logger_prefix} ERROR: Could not load inventory data from {inventory_file}")
+            safe_inventory_file = self._validate_path(inventory_file, "data")
+            inventory = pd.read_csv(safe_inventory_file)
+        except (FileNotFoundError, ValueError) as e:
+            print(f"{self.logger_prefix} ERROR: Could not load inventory data: {e}")
             return None
         
         # OPTIMIZATION 1: Vectorized date parsing
@@ -150,10 +159,16 @@ class StockSenseAgent:
     
     def save_recommendations(self, recommendations, output_file="output/recommendations.json"):
         """Save agent recommendations to file"""
-        os.makedirs(os.path.dirname(output_file), exist_ok=True)
-        with open(output_file, "w") as f:
+        try:
+            safe_output_file = self._validate_path(output_file, "output")
+        except ValueError as e:
+            print(f"{self.logger_prefix} ERROR: Could not save recommendations: {e}")
+            return None
+
+        os.makedirs(os.path.dirname(safe_output_file), exist_ok=True)
+        with open(safe_output_file, "w") as f:
             json.dump(recommendations, f, indent=2)
-        print(f"{self.logger_prefix} Recommendations saved to {output_file}")
+        print(f"{self.logger_prefix} Recommendations saved to {safe_output_file}")
 
 if __name__ == "__main__":
     agent = StockSenseAgent()

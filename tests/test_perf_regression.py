@@ -47,11 +47,14 @@ class TestOptimization(unittest.TestCase):
         # Support 'expiry_date' in mock_df.columns check
         mock_df.columns = ['name', 'stock', 'expiry_date', 'daily_sales']
         
-        # Mock read_csv
-        pd.read_csv = MagicMock(return_value=mock_df)
+        # Import agent module to modify its mocked pandas
+        import agent
         
-        # Mock to_datetime (just returns the column)
-        pd.to_datetime = MagicMock()
+        # Mock read_csv on the agent's pandas reference
+        agent.pd.read_csv = MagicMock(return_value=mock_df)
+
+        # Mock to_datetime (just returns the column) on the agent's pandas reference
+        agent.pd.to_datetime = MagicMock()
 
         with patch('agent.datetime') as mock_datetime:
             real_datetime = datetime
@@ -59,8 +62,10 @@ class TestOptimization(unittest.TestCase):
             mock_datetime.now.return_value = real_datetime(2023, 1, 1)
             
             # Run scan_inventory
-            agent = StockSenseAgent()
-            agent.scan_inventory('dummy.csv')
+            stock_agent = StockSenseAgent()
+            # Bypass path validation for test using a mock
+            stock_agent._validate_path = MagicMock(return_value='data/dummy.csv')
+            stock_agent.scan_inventory('data/dummy.csv')
             
             # VERIFICATION 1: strptime should NOT be called inside the loop
             # (because we pass datetime objects directly)
@@ -79,8 +84,8 @@ class TestOptimization(unittest.TestCase):
                            "itertuples should be called for efficient iteration")
             
             # VERIFICATION 4: to_datetime SHOULD be called
-            print(f"✓ Calls to to_datetime: {pd.to_datetime.call_count}")
-            self.assertEqual(pd.to_datetime.call_count, 1,
+            print(f"✓ Calls to to_datetime: {agent.pd.to_datetime.call_count}")
+            self.assertEqual(agent.pd.to_datetime.call_count, 1,
                            "pd.to_datetime should be called for vectorization")
             
             # VERIFICATION 5: datetime.now() should be called a small number of times
