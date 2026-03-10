@@ -48,9 +48,10 @@ class MedicineRecord:
         return self.daily_sales * max(0, self.days_until_expiry(current_date))
 
 class StockSenseAgent:
-    def __init__(self):
+    def __init__(self, restock_threshold=20):
         self.name = "stocksense_agent"
         self.logger_prefix = "[StockSense Agent]"
+        self.restock_threshold = restock_threshold
     
     def _validate_path(self, filepath, allowed_dir):
         """Validates that the file path is within the allowed directory."""
@@ -143,7 +144,7 @@ class StockSenseAgent:
                     print(f"{self.logger_prefix} RECOMMEND: {discount_pct}% discount on {medicine_obj.name}")
             
             # Recommend restock
-            if medicine_obj.stock < 20:
+            if medicine_obj.stock < self.restock_threshold:
                 recommendations["restock_orders"].append({
                     "medicine": medicine_obj.name,
                     "recommended_qty": 100,
