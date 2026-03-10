@@ -1,0 +1,3 @@
+## 2024-05-24 - Dynamic Focus Styling
+**Learning:** Hardcoded outline colors for focus states often fail contrast requirements across different background sections (e.g., light vs dark mode, or varied container colors).
+**Action:** Use `outline: 3px solid currentColor;` for `:focus-visible` to ensure focus rings automatically inherit text color and maintain contrast across varied backgrounds without needing custom CSS variables per section.
