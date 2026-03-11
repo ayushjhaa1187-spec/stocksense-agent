@@ -85,7 +85,7 @@ class StockSenseAgent:
             validated_path = self._validate_path(inventory_file, "data")
             inventory = pd.read_csv(validated_path)
         except (FileNotFoundError, ValueError) as e:
-            print(f"{self.logger_prefix} ERROR: {e}")
+            print(f"{self.logger_prefix} ERROR: Failed to access inventory file")
             return None
         
         # OPTIMIZATION 1: Vectorized date parsing
@@ -168,7 +168,7 @@ class StockSenseAgent:
                 json.dump(recommendations, f, indent=2)
             print(f"{self.logger_prefix} Recommendations saved to {output_file}")
         except ValueError as e:
-            print(f"{self.logger_prefix} ERROR: {e}")
+            print(f"{self.logger_prefix} ERROR: Failed to save recommendations")
             return None
 
 if __name__ == "__main__":
