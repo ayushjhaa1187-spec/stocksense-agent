@@ -1,0 +1,3 @@
+## 2024-05-28 - Adding skip links and generic focus states
+**Learning:** Adding a generic `:focus-visible` outline using `currentColor` ensures high contrast on multiple background colors without needing to override variables. Skip-to-content links can be beautifully integrated by hiding them off-screen until focus, rather than removing them entirely with `display: none` which removes them from the accessibility tree.
+**Action:** Use `currentColor` combined with outline offset for robust keyboard navigation styling across diverse background gradients. Hide skip links using negative absolute positioning to keep them accessible.
