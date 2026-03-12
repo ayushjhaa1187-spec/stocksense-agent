@@ -1,0 +1,3 @@
+## 2026-03-08 - Keyboard Focus Contrast and Screen Reader Redundancy
+**Learning:** Relying on specific colors for `:focus-visible` states can break contrast ratios across different background gradients. Additionally, using emojis as structural icons without `aria-hidden` creates redundant, noisy screen reader experiences when adjacent text already provides full context.
+**Action:** Use `outline: 3px solid currentColor` for focus states to ensure automatic visual contrast adaptation across varying backgrounds without hardcoding colors. Always apply `aria-hidden="true"` to decorative emoji containers when the meaning is fully covered by surrounding text.
