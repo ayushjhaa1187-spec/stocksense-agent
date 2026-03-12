@@ -11,6 +11,11 @@
             box-sizing: border-box;
         }
 
+        *:focus-visible {
+            outline: 3px solid currentColor;
+            outline-offset: 2px;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -303,32 +308,32 @@
             <h2>Key Features</h2>
             <div class="feature-grid">
                 <div class="feature-card">
-                    <div class="feature-icon">📦</div>
+                    <div class="feature-icon" aria-hidden="true">📦</div>
                     <h3>Smart Inventory Tracking</h3>
                     <p>Real-time monitoring of pharmaceutical stock levels with automated alerts for low inventory situations.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">⏰</div>
+                    <div class="feature-icon" aria-hidden="true">⏰</div>
                     <h3>Expiry Management</h3>
                     <p>Intelligent expiry date tracking and prediction system to minimize wastage and ensure patient safety.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">🤖</div>
+                    <div class="feature-icon" aria-hidden="true">🤖</div>
                     <h3>AI-Powered Agent</h3>
                     <p>Autonomous Fetch.ai agent that learns and optimizes inventory decisions over time.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">💡</div>
+                    <div class="feature-icon" aria-hidden="true">💡</div>
                     <h3>Predictive Analytics</h3>
                     <p>Machine learning models forecast demand patterns and optimize stock allocation.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">📊</div>
+                    <div class="feature-icon" aria-hidden="true">📊</div>
                     <h3>Detailed Analytics</h3>
                     <p>Comprehensive dashboards providing insights into inventory trends and optimization metrics.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">🔐</div>
+                    <div class="feature-icon" aria-hidden="true">🔐</div>
                     <h3>Secure & Scalable</h3>
                     <p>Built with security best practices and designed to scale across multiple pharmacy locations.</p>
                 </div>
